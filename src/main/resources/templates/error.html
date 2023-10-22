@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Error</title>
+</head>
+<body>
+  <h2>An Error Occurred in the Application</h2>
+  <h3>Please allow us some time to fix this!</h3>
+  <br/>
+  <h4 id="errorTitle" th:text="${errorTitle}"></h4>
+  <div id="errorList" th:each="err : ${errorMessageList}">
+    <p th:text="${err}">error message</p>
+  </div>
+
+
+</body>
+</html>

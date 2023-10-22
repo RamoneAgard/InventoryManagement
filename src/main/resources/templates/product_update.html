@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Update Products</title>
+</head>
+<body>
+    <h1>Create or Update Product</h1>
+    <form th:action="@{/products/update(id=${product.id})}" th:object="${product}" method="post">
+<!--        <input type="hidden" th:field="*{id}" th:value="${product.id}">-->
+        <label for="name">Name</label>
+        <span th:if="${#fields.hasErrors('name')}" th:errors="*{name}" ></span>
+        <input type="text" minlength="3" maxlength="40" th:field="*{name}" id="name" th:placeholder="Name">
+        <label for="name">Cost $USD</label>
+        <span th:if="${#fields.hasErrors('cost')}" th:errors="*{cost}" ></span>
+        <input type="number" min="0" step="0.01" th:field="*{cost}" id="cost" placeholder="Cost $USD">
+        <label for="name">Price $USD</label>
+        <span th:if="${#fields.hasErrors('price')}" th:errors="*{price}" ></span>
+        <input type="number" min="0" step="0.01" th:field="*{price}" id="price" placeholder="Price $USD">
+        <label for="name">Stock Amount</label>
+        <span th:if="${#fields.hasErrors('stock')}" th:errors="*{stock}" ></span>
+        <input type="number" min="0" th:field="*{stock}" id="stock" placeholder="10">
+        <input type="hidden" th:field="*{version}" th:value="${product.version}">
+        <input type="submit" id="submit">
+    </form>
+
+</body>
+</html>
