@@ -14,6 +14,7 @@
       <th>Price</th>
       <th>Stock</th>
       <th>Category</th>
+      <th>Creation Date</th>
     </tr>
     <tr th:each="prod : ${products}">
       <td th:text="${prod.id}">id value</td>
@@ -22,6 +23,7 @@
       <td th:text="|$${prod.price}|">price value</td>
       <td th:text="${prod.stock}">stock value</td>
       <td th:text="${prod.category.name}">category name</td>
+      <td th:text="${prod.createdDate}">date created</td>
     </tr>
   </table>
   <div>

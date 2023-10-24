@@ -21,6 +21,11 @@ public class CategoryServiceImpl implements CategoryService {
     }
 
     @Override
+    public Category getById(Long id) {
+        return categoryRepository.findById(id).orElse(null);
+    }
+
+    @Override
     public Set<Product> getProductsForCategory(Category category) {
         Category existingCategory = categoryRepository.findById(category.getId()).orElse(null);
         if(existingCategory == null){

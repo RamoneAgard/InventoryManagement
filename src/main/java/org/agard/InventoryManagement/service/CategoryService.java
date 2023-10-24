@@ -11,6 +11,8 @@ public interface CategoryService {
 
     List<Category> getAllCategories();
 
+    Category getById(Long id);
+
     Set<Product> getProductsForCategory(Category category);
 
     void saveCategory(Category category);

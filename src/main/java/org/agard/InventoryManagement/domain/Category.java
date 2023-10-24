@@ -2,6 +2,7 @@ package org.agard.InventoryManagement.domain;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 
@@ -24,6 +25,7 @@ public class Category {
 
     @Column(unique = true)
     @NotBlank(message = "Category Name cannot be blank")
+    @Size(min = 3, max = 20)
     private String name;
 
     @Builder.Default
@@ -31,10 +33,10 @@ public class Category {
     private Set<Product> products = new HashSet<>();
 
     @CreationTimestamp
-    private LocalDateTime creationDate;
+    private LocalDateTime createdDate;
 
     public void addProduct(Product product){
-        System.out.println("adding product");
+        //System.out.println("adding product");
         this.products.add(product);
     }
 }

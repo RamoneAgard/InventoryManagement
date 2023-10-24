@@ -32,6 +32,7 @@ public class ProductController {
 
     private final CategoryService categoryService;
 
+
     @GetMapping({"/", PRODUCT_PATH})
     public String productList(Model model,
                               @RequestParam(required = false) String name,

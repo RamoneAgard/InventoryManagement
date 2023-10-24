@@ -34,6 +34,14 @@ public class ProductServiceImpl implements ProductService {
         return PageRequest.of(pageNumberRequest, pageSize);
     }
 
+
+    /**
+     * @param name Search name of the product or null
+     * @param categoryName Name of the category or null
+     * @param pageNumber Page number starting from 1 or null (Default is 1)
+     * @param pageSize Number of elements per page or null (Default is DEFAULT_PAGE_SIZE defined in class)
+     * @return Page of Product elements meeting input parameters
+     */
     @Override
     public Page<Product> getProductList(String name, String categoryName, Integer pageNumber, Integer pageSize) {
 
@@ -58,11 +66,19 @@ public class ProductServiceImpl implements ProductService {
         return productRepository.findAll(pageRequest);
     }
 
+
+    /**
+     * @param toSave the Product to save to database, new or existing
+     */
     @Override
     public void saveProduct(Product toSave) {
         productRepository.save(toSave);
     }
 
+    /**
+     * @param id ID of the product to retrieve from database
+     * @return Product object with argument ID or null
+     */
     @Override
     public Product getById(Long id) {
         return productRepository.findById(id).orElse(null);
