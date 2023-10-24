@@ -7,4 +7,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface ProductRepository extends JpaRepository<Product, Long> {
     Page<Product> findAllByNameIsLikeIgnoreCase(String name, Pageable pageable);
+
+    Page<Product> findAllByCategoryNameOrderByCategory(String categoryName, Pageable pageable);
+
+    Page<Product> findAllByNameIsLikeIgnoreCaseAndCategoryNameOrderByCategory(String name, String categoryName, Pageable pageable);
 }

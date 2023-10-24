@@ -6,6 +6,7 @@ import org.agard.InventoryManagement.repositories.ProductRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
 @RequiredArgsConstructor
 @Service
@@ -34,11 +35,24 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
-    public Page<Product> getProductList(String name, Integer pageNumber, Integer pageSize) {
+    public Page<Product> getProductList(String name, String categoryName, Integer pageNumber, Integer pageSize) {
 
         PageRequest pageRequest = buildPageRequest(pageNumber, pageSize);
-        if(name != null && !name.isBlank()){
-            return productRepository.findAllByNameIsLikeIgnoreCase("%" + name + "%", pageRequest);
+        if(StringUtils.hasText(name) && StringUtils.hasText(categoryName)){
+            return productRepository.findAllByNameIsLikeIgnoreCaseAndCategoryNameOrderByCategory(
+                    "%" + name + "%",
+                    categoryName,
+                    pageRequest);
+
+        } else if (StringUtils.hasText(name) && !StringUtils.hasText(categoryName)) {
+            return productRepository.findAllByNameIsLikeIgnoreCase(
+                    "%" + name + "%",
+                    pageRequest);
+
+        } else if (!StringUtils.hasText(name) && StringUtils.hasText(categoryName)) {
+            return productRepository.findAllByCategoryNameOrderByCategory(
+                    categoryName,
+                    pageRequest);
         }
 
         return productRepository.findAll(pageRequest);

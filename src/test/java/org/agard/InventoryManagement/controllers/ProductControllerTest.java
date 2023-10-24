@@ -102,7 +102,7 @@ class ProductControllerTest {
 
     @Test
     void getProductList() throws Exception {
-        Mockito.when(productService.getProductList(any(),any(),any())).thenReturn(createMockProductsPage());
+        Mockito.when(productService.getProductList(any(),any(),any(),any())).thenReturn(createMockProductsPage());
 
         MvcResult mockResult = mockMvc.perform(get(ProductController.PRODUCT_PATH))
                 .andExpect(status().isOk())

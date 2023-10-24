@@ -6,12 +6,15 @@
 </head>
 <body>
   <h2>An Error Occurred in the Application</h2>
-  <h3>Please allow us some time to fix this!</h3>
+  <p>Please allow us some time to fix this!</p>
   <br/>
-  <h4 id="errorTitle" th:text="${errorTitle}"></h4>
+  <h2 id="errorTitle" th:text="${errorTitle}"></h2>
+<!--  <h3 id="status" th:text="|${httpStatus} -> ${httpStatus.reasonPhrase}|"></h3>-->
   <div id="errorList" th:each="err : ${errorMessageList}">
     <p th:text="${err}">error message</p>
   </div>
+  <br/>
+  <a th:href="@{/}">Back to Home Page</a>
 
 
 </body>

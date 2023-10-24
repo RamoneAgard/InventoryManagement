@@ -4,11 +4,16 @@ import jakarta.validation.ConstraintViolationException;
 import org.agard.InventoryManagement.Exceptions.NotFoundException;
 import org.agard.InventoryManagement.util.ViewNames;
 import org.hibernate.StaleObjectStateException;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.stereotype.Controller;
 import org.springframework.transaction.TransactionSystemException;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ResponseStatus;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -16,9 +21,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+@Controller
 @ControllerAdvice
 public class CustomErrorController {
 
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     @ExceptionHandler(TransactionSystemException.class)
     String handleJPAViolation(TransactionSystemException e, Model model) {
 
@@ -35,6 +42,7 @@ public class CustomErrorController {
         return ViewNames.ERROR_VIEW;
     }
 
+    @ResponseStatus(HttpStatus.NOT_FOUND)
     @ExceptionHandler(NotFoundException.class)
     String handleNotFound(NotFoundException e, Model model){
         List<String> errorList = new ArrayList<>();
@@ -45,14 +53,44 @@ public class CustomErrorController {
         return ViewNames.ERROR_VIEW;
     }
 
+    @ResponseStatus(HttpStatus.PRECONDITION_FAILED)
     @ExceptionHandler(StaleObjectStateException.class)
     String handleStaleObjectState(StaleObjectStateException e, Model model){
         List<String> errorList = new ArrayList<>();
-        errorList.add(e.getMessage());
+        String errorMsg = e.getMessage().split(":")[0];
+        errorList.add(errorMsg);
 
-        model.addAttribute("errorTitle", "HTTP 500 - There was a problem updating this item or invalid Http Post data.");
+        model.addAttribute("errorTitle", "HTTP 412 - There was a problem updating this " +
+                "item due to stale object state (invalid Http Post data)");
         model.addAttribute("errorMessageList", errorList);
 
         return ViewNames.ERROR_VIEW;
     }
+
+    @ResponseStatus(HttpStatus.FORBIDDEN)
+    @ExceptionHandler(AccessDeniedException.class)
+    String handleAccessDenied(AccessDeniedException e, Model model){
+        List<String> errorList = new ArrayList<>();
+        errorList.add(e.getMessage());
+
+        model.addAttribute("errorTitle", "HTTP 403 - User does not have access");
+        model.addAttribute("errorMessageList", errorList);
+
+        return ViewNames.ERROR_VIEW;
+    }
+
+    @ResponseStatus(HttpStatus.FORBIDDEN)
+    @GetMapping("/unauthorized")
+    public String resourceAccessDenied(Model model){
+
+        List<String> errorList = new ArrayList<>();
+        errorList.add("This User Role does not have access to this page");
+
+        model.addAttribute("errorTitle", "HTTP 403 - User does not have access");
+        model.addAttribute("errorMessageList", errorList);
+
+        return ViewNames.ERROR_VIEW;
+    }
+
+
 }

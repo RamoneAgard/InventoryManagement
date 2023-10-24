@@ -5,7 +5,7 @@ import org.springframework.data.domain.Page;
 
 public interface ProductService {
 
-    Page<Product> getProductList(String name, Integer pageNumber, Integer pageSize);
+    Page<Product> getProductList(String name, String categoryName, Integer pageNumber, Integer pageSize);
 
     void saveProduct(Product toSave);
 

@@ -11,6 +11,7 @@ import org.hibernate.annotations.UpdateTimestamp;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.HashSet;
 
 @Getter
 @Setter
@@ -18,7 +19,6 @@ import java.time.LocalDateTime;
 @ToString
 @Builder
 @NoArgsConstructor
-@AllArgsConstructor
 @Entity
 public class Product {
 
@@ -29,6 +29,9 @@ public class Product {
     @Column(unique = true)
     @NotBlank(message = "Product name required")
     private String name;
+
+    @ManyToOne
+    private Category category;
 
     @Positive(message = "Enter a valid price value")
     @NotNull(message = "Enter a product price")
@@ -51,4 +54,22 @@ public class Product {
 
     @Version
     private Integer version;
+
+
+    public Product(Long id, String name, Category category, BigDecimal price, BigDecimal cost, Integer stock, LocalDateTime createdDate, LocalDateTime lastModifiedDate, Integer version) {
+        this.id = id;
+        this.name = name;
+        this.setCategory(category);
+        this.price = price;
+        this.cost = cost;
+        this.stock = stock;
+        this.createdDate = createdDate;
+        this.lastModifiedDate = lastModifiedDate;
+        this.version = version;
+    }
+
+    public void setCategory(Category category){
+        this.category = category;
+        category.addProduct(this);
+    }
 }

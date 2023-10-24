@@ -13,6 +13,7 @@
       <th>Cost</th>
       <th>Price</th>
       <th>Stock</th>
+      <th>Category</th>
     </tr>
     <tr th:each="prod : ${products}">
       <td th:text="${prod.id}">id value</td>
@@ -20,6 +21,7 @@
       <td th:text="|$${prod.cost}|">cost value</td>
       <td th:text="|$${prod.price}|">price value</td>
       <td th:text="${prod.stock}">stock value</td>
+      <td th:text="${prod.category.name}">category name</td>
     </tr>
   </table>
   <div>
