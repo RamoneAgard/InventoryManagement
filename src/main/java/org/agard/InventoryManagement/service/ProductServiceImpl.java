@@ -75,6 +75,7 @@ public class ProductServiceImpl implements ProductService {
         productRepository.save(toSave);
     }
 
+
     /**
      * @param id ID of the product to retrieve from database
      * @return Product object with argument ID or null
@@ -82,5 +83,19 @@ public class ProductServiceImpl implements ProductService {
     @Override
     public Product getById(Long id) {
         return productRepository.findById(id).orElse(null);
+    }
+
+
+    /**
+     * @param id ID of the Product to delete
+     * @return boolean indicating the success of deleting the target product
+     */
+    @Override
+    public boolean deleteById(Long id) {
+        if(productRepository.existsById(id)){
+            productRepository.deleteById(id);
+            return true;
+        }
+        return false;
     }
 }

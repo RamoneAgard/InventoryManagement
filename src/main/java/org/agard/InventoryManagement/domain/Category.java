@@ -33,10 +33,18 @@ public class Category {
     private Set<Product> products = new HashSet<>();
 
     @CreationTimestamp
+    @Column(updatable = false)
     private LocalDateTime createdDate;
 
     public void addProduct(Product product){
         //System.out.println("adding product");
         this.products.add(product);
+    }
+
+    @PreRemove
+    private void beforeDeletion(){
+        for(Product p : products){
+            p.dereferenceCategory();
+        }
     }
 }

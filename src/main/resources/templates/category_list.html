@@ -18,6 +18,8 @@
       <td th:text="${cat.name}">name value</td>
       <td th:text="${cat.products.size()}">number of products</td>
       <td th:text="${cat.createdDate}">date created</td>
+      <td sec:authorize="hasRole('ROLE_EDITOR')"><a th:href="@{/categories/update(id=${cat.id})}">Update</a></td>
+      <td sec:authorize="hasRole('ROLE_ADMIN')"><a th:href="@{/categories/delete(id=${cat.id})}">Delete</a></td>
     </tr>
   </table>
 </body>

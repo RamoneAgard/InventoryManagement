@@ -16,4 +16,6 @@ public interface CategoryService {
     Set<Product> getProductsForCategory(Category category);
 
     void saveCategory(Category category);
+
+    boolean deleteById(Long id);
 }

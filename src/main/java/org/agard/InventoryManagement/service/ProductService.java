@@ -11,6 +11,8 @@ public interface ProductService {
 
     Product getById(Long id);
 
+    boolean deleteById(Long id);
+
 
 
 

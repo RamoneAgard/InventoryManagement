@@ -72,4 +72,8 @@ public class Product {
         this.category = category;
         category.addProduct(this);
     }
+
+    public void dereferenceCategory(){
+        this.category = null;
+    }
 }

@@ -10,10 +10,13 @@ import org.agard.InventoryManagement.service.CategoryService;
 import org.agard.InventoryManagement.service.ProductService;
 import org.agard.InventoryManagement.util.ViewNames;
 import org.springframework.data.domain.Page;
+import org.springframework.security.access.annotation.Secured;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -27,6 +30,8 @@ public class ProductController {
 
     public static final String PRODUCT_PATH = "/products";
     public static final String PRODUCT_ADD_PATH = "/products/update";
+
+    public static final String PRODUCT_DELETE_PATH = "/products/delete";
 
     private final ProductService productService;
 
@@ -58,6 +63,8 @@ public class ProductController {
         return ViewNames.PRODUCT_VIEW;
     }
 
+
+    @PreAuthorize("hasRole('ROLE_EDITOR')")
     @GetMapping(PRODUCT_ADD_PATH)
     public String getUpdateForm(Model model,
                                 @RequestParam(required = false) Long id){
@@ -80,6 +87,7 @@ public class ProductController {
     }
 
 
+    @PreAuthorize("hasRole('ROLE_EDITOR')")
     @PostMapping(PRODUCT_ADD_PATH)
     public String processCreateOrUpdate(@Valid Product product,
                                         BindingResult bindingResult,
@@ -92,6 +100,18 @@ public class ProductController {
         productService.saveProduct(product);
 
         return "redirect:" + PRODUCT_PATH;
+    }
+
+
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @GetMapping(PRODUCT_DELETE_PATH)
+    public String deleteProductById(@RequestParam Long id){
+
+        if(productService.deleteById(id)){
+            return "redirect:" + PRODUCT_PATH;
+        }
+
+        throw new NotFoundException("Product not found for ID: " + id);
     }
 
 }

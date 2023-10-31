@@ -1,5 +1,6 @@
 <!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="https://www.thymeleaf.org/thymeleaf-extras-springsecurity6">
 <head>
     <meta charset="UTF-8">
     <title>Update Products</title>
@@ -10,27 +11,27 @@
 
         <label for="name">Name</label>
         <span th:if="${#fields.hasErrors('name')}" th:errors="*{name}" ></span>
-        <input type="text" minlength="3" maxlength="40" th:field="*{name}" id="name" th:placeholder="Name">
+        <input type="text" minlength="3" maxlength="40" th:field="*{name}" id="name" th:placeholder="Name" required>
 
         <label for="name">Cost $USD</label>
         <span th:if="${#fields.hasErrors('cost')}" th:errors="*{cost}" ></span>
-        <input type="number" min="0" step="0.01" th:field="*{cost}" id="cost" placeholder="Cost $USD">
+        <input type="number" min="0" step="0.01" th:field="*{cost}" id="cost" placeholder="Cost $USD" required>
 
         <label for="name">Price $USD</label>
         <span th:if="${#fields.hasErrors('price')}" th:errors="*{price}" ></span>
-        <input type="number" min="0" step="0.01" th:field="*{price}" id="price" placeholder="Price $USD">
+        <input type="number" min="0" step="0.01" th:field="*{price}" id="price" placeholder="Price $USD" required>
 
         <label for="name">Stock Amount</label>
         <span th:if="${#fields.hasErrors('stock')}" th:errors="*{stock}" ></span>
-        <input type="number" min="0" th:field="*{stock}" id="stock" placeholder="10">
+        <input type="number" min="0" th:field="*{stock}" id="stock" placeholder="10" required>
 
         <label for="category">Product Category</label>
-        <select th:field="*{category}" id="category" name="Category" >
+        <select th:field="*{category}" id="category" name="Category" required>
             <option th:each="cat : ${categories}" th:value="${cat.id}" th:text="${cat.name}">Option</option>
         </select>
 
         <input type="hidden" th:field="*{version}" th:value="${product.version}">
-        <input type="submit" id="submit">
+        <input type="submit" id="submit" value="Submit">
     </form>
 
 </body>
