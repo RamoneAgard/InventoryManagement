@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="https://www.thymeleaf.org/thymeleaf-extras-springsecurity6">
+<head>
+    <meta charset="UTF-8">
+    <title>Update Products</title>
+</head>
+<body>
+<h1>Create or Update Product</h1>
+
+<div th:fragment="updateForm" class="col">
+    <div class="row justify-content-center my-2">
+        <div class="col-sm-4 d-flex justify-content-evenly">
+            <button class="btn btn-success" type="button" data-bs-toggle="collapse" data-bs-target="#formCollapse"
+                    th:aria-expanded="${product.id} != null" aria-controls="formCollapse"
+                    th:text="${product.id} == null ? |Create Product| : |Update Product|">
+                Create or Update Product
+            </button>
+            <button class="btn btn-outline-success" id="clearUpdate"
+               th:if="${product.id} != null" th:link="@{/products/update}">
+                Clear Update
+            </button>
+        </div>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-sm-10 col-lg-8">
+            <div class="collapse p-1 bg-primary-subtle rounded-3"
+                 th:classappend="${product.id} != null ? |show|"
+                 id="formCollapse">
+                <form class="form" id="productForm" th:fragment="updateForm(product, categories, volumes)" th:action="@{/products/update(id=${product.id})}" th:object="${product}" method="post">
+                    <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-2">
+                            <label for="name" class="form-label">Name</label>
+                            <span th:if="${#fields.hasErrors('name')}" th:errors="*{name}" class="text-danger"></span>
+                            <input class="form-control" type="text" minlength="0" maxlength="40" th:field="*{name}"
+                                   id="name" title="Product Name, no leading or trailing whitespaces" pattern=^[\S]+(\s?[\S]+)*$ placeholder="Name" required>
+                        </div>
+
+                        <div class="mb-2">
+                            <label for="itemCode" class="form-label">Item Code</label>
+                            <span th:if="${#fields.hasErrors('itemCode')}" th:errors="*{itemCode}" class="text-danger"></span>
+                            <input class="form-control" type="text" minlength="6" maxlength="7" th:field="*{itemCode}"
+                                   id="itemCode" title="Alphanumeric item code with or without a dash" pattern=^[a-zA-Z\d]+-?[a-zA-Z\d]+ placeholder="ab-123" required>
+                        </div>
+
+                        <div class="mb-2">
+                            <label for="upc" class="form-label">UPC</label>
+                            <span th:if="${#fields.hasErrors('upc')}" th:errors="*{upc}" class="text-danger"></span>
+                            <input class="form-control" type="text" minlength="1" maxlength="14" th:field="*{upc}"
+                                   id="upc" title="12 digit universal product code" pattern=[0-9]{12} placeholder="123456789102" required>
+                        </div>
+
+                        <div class="mb-2">
+                            <label class="form-label" for="category">Product Category</label>
+                            <select class="form-select" th:field="*{category}" id="category" name="Category" required>
+                                <option th:each="cat : ${categories}" th:value="${cat.id}" th:text="${cat.name}">Option</option>
+                            </select>
+                        </div>
+
+                        <div class="mb-2">
+                            <label class="form-label" for="volume">Volume</label>
+                            <select class="form-select" th:field="*{volume}" id="volume" name="Volume" required>
+                                <option th:each="vol : ${volumes}" th:value="${vol.id}" th:text="${vol.description}">Option</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="mb-2">
+                            <label for="name" class="form-label">Cost $USD</label>
+                            <span th:if="${#fields.hasErrors('cost')}" th:errors="*{cost}" class="text-danger"></span>
+                            <input class="form-control" type="number" min="0" step="0.01" th:field="*{cost}" id="cost" placeholder="Cost $USD" required>
+                        </div>
+
+                        <div class="mb-2">
+                            <label class="form-label" for="name">Price $USD</label>
+                            <span th:if="${#fields.hasErrors('price')}" th:errors="*{price}" class="text-danger"></span>
+                            <input class="form-control" type="number" min="0" step="0.01" th:field="*{price}" id="price" placeholder="Price $USD" required>
+                        </div>
+
+                        <div class="mb-2">
+                            <label class="form-label" for="unitSize">Unit Size</label>
+                            <span th:if="${#fields.hasErrors('unitSize')}" th:errors="*{unitSize}" class="text-danger"></span>
+                            <input class="form-control" type="number" min="1" id="unitSize" th:field="*{unitSize}" placeholder="12" required>
+                        </div>
+
+                        <div class="mb-2">
+                            <label class="form-label" for="name">Stock Amount</label>
+                            <span th:if="${#fields.hasErrors('stock')}" th:errors="*{stock}" class="text-danger"></span>
+                            <input class="form-control" type="number" min="0" th:field="*{stock}" id="stock" placeholder="10" required>
+                        </div>
+                    </div>
+
+                    <div class="col-12 d-flex justify-content-center">
+                        <input type="hidden" th:field="*{version}" th:value="${product.version}">
+                        <button class="btn btn-primary" type="submit" id="submit">Submit</button>
+                    </div>
+                    </div>
+
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

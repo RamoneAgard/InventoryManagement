@@ -2,6 +2,8 @@ package org.agard.InventoryManagement.domain;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
@@ -18,18 +20,23 @@ import java.util.Set;
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
-public class Category {
+public class Volume {
+
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
 
     @Column(unique = true)
-    @NotBlank(message = "Category Name cannot be blank")
-    @Size(min = 3, max = 20)
-    private String name;
+    @NotBlank(message = "Volume Description cannot be blank")
+    @Size(min = 3, max = 30)
+    private String description;
+
+    @Positive
+    @NotNull(message = "Value cannot be null")
+    private Integer valueCode;
 
     @Builder.Default
-    @OneToMany(mappedBy = "category")
+    @OneToMany(mappedBy = "volume")
     private Set<Product> products = new HashSet<>();
 
     @CreationTimestamp
@@ -40,14 +47,12 @@ public class Category {
     private Integer version;
 
     public void addProduct(Product product){
-        //System.out.println("adding product");
         this.products.add(product);
     }
 
-    @PreRemove
     private void beforeDeletion(){
         for(Product p : products){
-            p.dereferenceCategory();
+            p.dereferenceVolume();
         }
     }
 }

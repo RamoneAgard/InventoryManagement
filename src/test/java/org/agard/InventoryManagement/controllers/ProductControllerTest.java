@@ -1,6 +1,8 @@
 package org.agard.InventoryManagement.controllers;
 
+import org.agard.InventoryManagement.domain.Category;
 import org.agard.InventoryManagement.domain.Product;
+import org.agard.InventoryManagement.service.CategoryService;
 import org.agard.InventoryManagement.service.ProductService;
 import org.agard.InventoryManagement.service.ProductServiceImpl;
 import org.agard.InventoryManagement.util.ViewNames;
@@ -9,6 +11,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
+import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -16,6 +19,7 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.http.MediaType;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.ui.ModelMap;
@@ -26,6 +30,7 @@ import java.math.BigDecimal;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -46,7 +51,8 @@ class ProductControllerTest {
     @MockBean
     ProductService productService;
 
-    //ProductServiceImpl productServiceImpl;
+    @MockBean
+    CategoryService categoryService;
 
     @Captor
     ArgumentCaptor<Long> longArgumentCaptor;
@@ -61,12 +67,14 @@ class ProductControllerTest {
 
     // Helper method to create a page for Product objects for testing purposes
     Page<Product> createMockProductsPage() {
+        List<Category> cats = createMockCategoryList();
         Product p1 = Product.builder()
                 .id(1L)
                 .name("100W Light Bulbs")
                 .price(new BigDecimal(4.50))
                 .cost(BigDecimal.valueOf(2.50))
                 .stock(45)
+                .category(cats.get(0))
                 .build();
 
         Product p2 = Product.builder()
@@ -75,8 +83,23 @@ class ProductControllerTest {
                 .price(BigDecimal.valueOf(10.99))
                 .cost(BigDecimal.valueOf(4.45))
                 .stock(32)
+                .category(cats.get(1))
                 .build();
+
         return new PageImpl<Product>(Arrays.asList(p1, p2));
+    }
+
+    List<Category> createMockCategoryList(){
+        Category c1 = Category.builder()
+                .id(1L)
+                .name("Misc")
+                .build();
+
+        Category c2 = Category.builder()
+                .id(2L)
+                .name("Accessories")
+                .build();
+        return Arrays.asList(c1, c2);
     }
 
 
@@ -103,16 +126,17 @@ class ProductControllerTest {
     @Test
     void getProductList() throws Exception {
         Mockito.when(productService.getProductList(any(),any(),any(),any())).thenReturn(createMockProductsPage());
+        Mockito.when(categoryService.getAllCategories()).thenReturn(createMockCategoryList());
 
         MvcResult mockResult = mockMvc.perform(get(ProductController.PRODUCT_PATH))
                 .andExpect(status().isOk())
                 .andExpect(view().name(ViewNames.PRODUCT_VIEW))
-                .andExpect(model().attributeExists("products", "hasNext", "hasPrevious",
+                .andExpect(model().attributeExists("products", "categories", "hasNext", "hasPrevious",
                                                      "pageNumber"))
                 .andReturn();
 
         ModelMap modelMap = mockResult.getModelAndView().getModelMap();
-        assertNull(modelMap.getAttribute("name"));
+        assertNull(modelMap.getAttribute("nameQuery"));
         assertFalse((Boolean)modelMap.getAttribute("hasNext"));
         assertFalse((Boolean)modelMap.getAttribute("hasPrevious"));
         assertNull(modelMap.getAttribute("pageSize"));
@@ -121,26 +145,34 @@ class ProductControllerTest {
     }
 
     @Test
+    @WithMockUser(username = "editor", roles = {"EDITOR"})
     void getNewProductUpdate() throws Exception{
+        Mockito.when(categoryService.getAllCategories()).thenReturn(createMockCategoryList());
+
         MvcResult mockResult = mockMvc.perform(get(ProductController.PRODUCT_ADD_PATH))
                 .andExpect(status().isOk())
                 .andExpect(view().name(ViewNames.PRODUCT_UPDATE))
-                .andExpect(model().attributeExists("product"))
+                .andExpect(model().attributeExists("product", "categories"))
                 .andReturn();
 
         ModelMap modelMap = mockResult.getModelAndView().getModelMap();
         Product emptyProduct = (Product) modelMap.getAttribute("product");
+        List<Category> categoryList = (List<Category>) modelMap.getAttribute("categories");
+        assertEquals(categoryList.size(), 2);
         assertNull(emptyProduct.getId());
         assertNull(emptyProduct.getName());
         assertNull(emptyProduct.getCost());
         assertNull(emptyProduct.getPrice());
         assertNull(emptyProduct.getStock());
+        assertNull(emptyProduct.getCategory());
     }
 
     @Test
+    @WithMockUser(username = "editor", roles = {"EDITOR"})
     void getExistingProductUpdate() throws Exception{
         Product mockProduct = createMockProductsPage().getContent().get(0);
         Mockito.when(productService.getById(any())).thenReturn(mockProduct);
+        Mockito.when(categoryService.getAllCategories()).thenReturn(createMockCategoryList());
 
         MvcResult mockResult = mockMvc.perform(get(ProductController.PRODUCT_ADD_PATH)
                 .queryParam("id", mockProduct.getId().toString()))

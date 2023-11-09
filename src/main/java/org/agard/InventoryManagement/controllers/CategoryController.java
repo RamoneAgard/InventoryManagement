@@ -29,9 +29,24 @@ public class CategoryController {
 
     @PreAuthorize("hasRole('ROLE_EDITOR')")
     @GetMapping(CATEGORY_LIST_PATH)
-    public String getCategories(Model model){
+    public String getCategories(Model model,
+                                @RequestParam(required = false) Long id){
+
+        Category category;
+        if(id == null){
+            category = new Category();
+        } else{
+            category = categoryService.getById(id);
+            if(category == null){
+                throw new NotFoundException("Category not found for id: " + id);
+            }
+        }
+
         List<Category> categoryList = categoryService.getAllCategories();
+
         model.addAttribute("categories", categoryList);
+        model.addAttribute("category", category);
+
         return ViewNames.CATEGORY_LIST;
     }
 

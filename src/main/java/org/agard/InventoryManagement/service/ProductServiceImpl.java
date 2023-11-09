@@ -5,8 +5,11 @@ import org.agard.InventoryManagement.domain.Product;
 import org.agard.InventoryManagement.repositories.ProductRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
+
+import java.util.List;
 
 @RequiredArgsConstructor
 @Service
@@ -14,7 +17,7 @@ public class ProductServiceImpl implements ProductService {
 
     private final ProductRepository productRepository;
 
-    private final Integer DEFAULT_PAGE_SIZE = 10;
+    private final Integer DEFAULT_PAGE_SIZE = 20;
 
     //Private method to construct page requests from repository based on which page and how big
     private PageRequest buildPageRequest(Integer pageNumber, Integer pageSize){
@@ -27,43 +30,45 @@ public class ProductServiceImpl implements ProductService {
             pageNumberRequest = pageNumber - 1;
         }
 
-        if(pageSize == null || (pageSize < 1 || pageSize > 40)){
+        if(pageSize == null || (pageSize < 1 || pageSize > 50)){
             pageSize = DEFAULT_PAGE_SIZE;
         }
 
-        return PageRequest.of(pageNumberRequest, pageSize);
+        Sort defaultSort = Sort.by("category.name").and(Sort.by("volume.valueCode"));
+
+        return PageRequest.of(pageNumberRequest, pageSize, defaultSort);
     }
 
 
     /**
-     * @param name Search name of the product or null
-     * @param categoryName Name of the category or null
-     * @param pageNumber Page number starting from 1 or null (Default is 1)
+     * @param pageNumber page number starting from 1, or null (Default is 1)
      * @param pageSize Number of elements per page or null (Default is DEFAULT_PAGE_SIZE defined in class)
      * @return Page of Product elements meeting input parameters
      */
     @Override
-    public Page<Product> getProductList(String name, String categoryName, Integer pageNumber, Integer pageSize) {
+    public Page<Product> getDefaultProductList(Integer pageNumber, Integer pageSize) {
+        PageRequest pageRequest = buildPageRequest(pageNumber, pageSize);
+        return productRepository.findAll(pageRequest);
+    }
+
+
+    /**
+     * @param name       Search name of the product or null
+     * @param categories List of category names or null
+     * @param volumes    List of volume descriptions or null
+     * @param pageNumber Page number starting from 1 or null (Default is 1)
+     * @param pageSize   Number of elements per page or null (Default is DEFAULT_PAGE_SIZE defined in class)
+     * @return Page of Product elements meeting input parameters
+     */
+    @Override
+    public Page<Product> filterProducts(String name, List<Long> categories, List<Long> volumes, Integer pageNumber, Integer pageSize) {
 
         PageRequest pageRequest = buildPageRequest(pageNumber, pageSize);
-        if(StringUtils.hasText(name) && StringUtils.hasText(categoryName)){
-            return productRepository.findAllByNameIsLikeIgnoreCaseAndCategoryNameOrderByCategory(
-                    "%" + name + "%",
-                    categoryName,
-                    pageRequest);
-
-        } else if (StringUtils.hasText(name) && !StringUtils.hasText(categoryName)) {
-            return productRepository.findAllByNameIsLikeIgnoreCase(
-                    "%" + name + "%",
-                    pageRequest);
-
-        } else if (!StringUtils.hasText(name) && StringUtils.hasText(categoryName)) {
-            return productRepository.findAllByCategoryNameOrderByCategory(
-                    categoryName,
-                    pageRequest);
+        if(!StringUtils.hasText(name)){
+            name = null;
         }
 
-        return productRepository.findAll(pageRequest);
+        return productRepository.findAllWithFilters(name, categories, volumes, pageRequest);
     }
 
 

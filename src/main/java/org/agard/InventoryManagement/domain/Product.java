@@ -1,13 +1,11 @@
 package org.agard.InventoryManagement.domain;
 
 import jakarta.persistence.*;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Positive;
-import jakarta.validation.constraints.PositiveOrZero;
+import jakarta.validation.constraints.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
+import org.hibernate.validator.constraints.Length;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -26,20 +24,37 @@ public class Product {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
 
+    @NotBlank(message = "Non-blank, 12 digit universal product code required ")
+    @Size(min = 12, max = 12)
     @Column(unique = true)
-    @NotBlank(message = "Product name required")
+    private String upc;
+
+    @NotBlank(message = "Non-blank, 6 character item code required")
+    @Size(min = 6, max= 7)
+    @Column(unique = true)
+    private String itemCode;
+
+    @Size(min = 2, max = 40)
+    @NotBlank(message = "Non-blank product name required")
     private String name;
 
     @ManyToOne
     private Category category;
 
-    @Positive(message = "Enter a valid price value")
+    @Positive(message = "Valid price value required")
     @NotNull(message = "Enter a product price")
     private BigDecimal price;
 
-    @Positive(message = "Enter a valid cost value")
+    @Positive(message = "Valid cost value required")
     @NotNull(message = "Enter a product cost")
     private BigDecimal cost;
+
+    @Positive(message = "Valid unit size required")
+    @NotNull(message = "Enter a unit size")
+    private Integer unitSize;
+
+    @ManyToOne
+    private Volume volume;
 
     @PositiveOrZero(message = "Enter a non-negative in-stock value")
     @NotNull(message = "Enter an in-stock value")
@@ -56,12 +71,16 @@ public class Product {
     private Integer version;
 
 
-    public Product(Long id, String name, Category category, BigDecimal price, BigDecimal cost, Integer stock, LocalDateTime createdDate, LocalDateTime lastModifiedDate, Integer version) {
+    public Product(Long id, String upc, String itemCode, String name, Category category, BigDecimal price, BigDecimal cost, Integer unitSize, Volume volume, Integer stock, LocalDateTime createdDate, LocalDateTime lastModifiedDate, Integer version) {
         this.id = id;
+        this.upc = upc;
+        this.itemCode = itemCode;
         this.name = name;
         this.setCategory(category);
         this.price = price;
         this.cost = cost;
+        this.unitSize = unitSize;
+        this.setVolume(volume);
         this.stock = stock;
         this.createdDate = createdDate;
         this.lastModifiedDate = lastModifiedDate;
@@ -73,7 +92,16 @@ public class Product {
         category.addProduct(this);
     }
 
+    public void setVolume(Volume volume){
+        this.volume = volume;
+        volume.addProduct(this);
+    }
+
     public void dereferenceCategory(){
         this.category = null;
+    }
+
+    public void dereferenceVolume(){
+        this.volume = null;
     }
 }
