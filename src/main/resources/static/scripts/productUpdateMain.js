@@ -1,26 +1,26 @@
 
-// Set-up for retrieving the update form
 const formDiv = document.getElementById("formContainer");
 const tableDiv = document.getElementById("tableContainer");
 const filterForm = document.getElementById('productFilter');
 
+// Set-up for retrieving the update form
 var formObserver;
 if(formDiv != null){
 
     var tableUpdateAfterSubmit = () => {};
     if(tableDiv != null && filterForm != null){
         tableUpdateAfterSubmit = () =>{
-            getProductFilterData(filterForm, tableDiv);
+            getDataFilterData(filterForm, tableDiv);
         };
     }
 
     document.addEventListener("DOMContentLoaded", function(){
-        setFormEvent(formDiv, tableUpdateAfterSubmit);
+        setFormEvent(formDiv, tableUpdateAfterSubmit, "dataForm");
     });
 
     formObserver = new MutationObserver(function(mutations, observer){
-        setListenerForProductForm(mutations, formDiv, tableUpdateAfterSubmit);
-        setListenerForClearUpdate(mutations, formDiv);
+        setListenerForDataForm(mutations, formDiv, tableUpdateAfterSubmit, "dataForm");
+        setListenerForClearUpdate(mutations, formDiv, "clearUpdate");
     });
     const formObserverConfig = {
         subtree : true,
@@ -40,7 +40,7 @@ if(tableDiv != null){
         if(filterForm != null){
             filterForm.addEventListener("submit", function(event){
                 event.preventDefault();
-                getProductFilterData(filterForm, tableDiv);
+                getDataFilterData(filterForm, tableDiv);
             });
         }
     });
@@ -48,9 +48,9 @@ if(tableDiv != null){
     pageObserver = new MutationObserver(function(mutations, observer){
         setListenerForPages(mutations, tableDiv, "nextPage", "previousPage");
         if(formDiv){
-            setListenerForProductUpdates(mutations, formDiv);
+            setListenerForDataUpdates(mutations, formDiv, "updateBtn");
         }
-        setListenerForProductDelete(mutations, tableDiv);
+        setListenerForDataDelete(mutations, tableDiv, "deleteBtn");
     });
     const tableObserverConfig = {
             subtree : true,
@@ -59,70 +59,3 @@ if(tableDiv != null){
     pageObserver.observe(tableDiv, tableObserverConfig);
 }
 
-
-// Functions for retrieving and sending product form data
-function setListenerForProductForm(mutations, container, tableUpdateFunction){
-    for(const mutation of mutations){
-        if(mutation.type === "childList"){
-            setFormEvent(container, tableUpdateFunction);
-            break;
-        }
-    }
-}
-
-function setListenerForProductUpdates(mutations, container){
-    for(const mutation of mutations){
-        if(mutation.type === "childList"){
-            const updateBtnList = document.getElementsByClassName("updateBtn");
-            for(const el of updateBtnList){
-                el.addEventListener("click", function(event){
-                    event.preventDefault();
-                    getUpdateFormForProduct(el, container);
-                })
-            }
-            break;
-        }
-    }
-
-}
-
-function setListenerForClearUpdate(mutations, container){
-    for(const mutation of mutations){
-        if(mutation.type === "childList"){
-            const clearBtn = document.getElementById("clearUpdate");
-            if(clearBtn){
-                clearBtn.addEventListener("click", function(event){
-                    event.preventDefault();
-                    getUpdateFormForProduct(clearBtn, container);
-                });
-            }
-            break;
-        }
-    }
-}
-
-function setFormEvent(resultContainer, tableUpdateFunction){
-    const productForm = document.getElementById("productForm");
-    productForm.addEventListener("submit", function(event){
-        event.preventDefault();
-        submitProductForm(productForm, resultContainer, tableUpdateFunction);
-    })
-}
-
-function submitProductForm(form, resultContainer, tableUpdateFunction){
-    const url = form.getAttribute("action");
-    const formData = new FormData(form);
-    const callback = (response) => {
-        tableUpdateFunction();
-        resultContainer.innerHTML = response;
-    };
-    fetchData(callback, "POST", url, formData);
-}
-
-function getUpdateFormForProduct(updateBtn, resultContainer){
-    const url = updateBtn.getAttribute("link");
-    const callback = (response) => {
-        resultContainer.innerHTML = response;
-    };
-    fetchData(callback, "GET", url);
-}

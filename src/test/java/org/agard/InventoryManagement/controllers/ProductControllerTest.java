@@ -4,14 +4,11 @@ import org.agard.InventoryManagement.domain.Category;
 import org.agard.InventoryManagement.domain.Product;
 import org.agard.InventoryManagement.service.CategoryService;
 import org.agard.InventoryManagement.service.ProductService;
-import org.agard.InventoryManagement.service.ProductServiceImpl;
 import org.agard.InventoryManagement.util.ViewNames;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
-import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -24,18 +21,15 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.ui.ModelMap;
 import org.springframework.validation.BindingResult;
-import org.springframework.web.servlet.ModelAndView;
 
 import java.math.BigDecimal;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
-import java.util.HashSet;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -125,7 +119,7 @@ class ProductControllerTest {
 
     @Test
     void getProductList() throws Exception {
-        Mockito.when(productService.getProductList(any(),any(),any(),any())).thenReturn(createMockProductsPage());
+        //Mockito.when(productService.getProductList(any(),any(),any(),any())).thenReturn(createMockProductsPage());
         Mockito.when(categoryService.getAllCategories()).thenReturn(createMockCategoryList());
 
         MvcResult mockResult = mockMvc.perform(get(ProductController.PRODUCT_PATH))
@@ -149,7 +143,7 @@ class ProductControllerTest {
     void getNewProductUpdate() throws Exception{
         Mockito.when(categoryService.getAllCategories()).thenReturn(createMockCategoryList());
 
-        MvcResult mockResult = mockMvc.perform(get(ProductController.PRODUCT_ADD_PATH))
+        MvcResult mockResult = mockMvc.perform(get(ProductController.PRODUCT_UPDATE_PATH))
                 .andExpect(status().isOk())
                 .andExpect(view().name(ViewNames.PRODUCT_UPDATE))
                 .andExpect(model().attributeExists("product", "categories"))
@@ -174,7 +168,7 @@ class ProductControllerTest {
         Mockito.when(productService.getById(any())).thenReturn(mockProduct);
         Mockito.when(categoryService.getAllCategories()).thenReturn(createMockCategoryList());
 
-        MvcResult mockResult = mockMvc.perform(get(ProductController.PRODUCT_ADD_PATH)
+        MvcResult mockResult = mockMvc.perform(get(ProductController.PRODUCT_UPDATE_PATH)
                 .queryParam("id", mockProduct.getId().toString()))
                 .andExpect(status().isOk())
                 .andExpect(view().name(ViewNames.PRODUCT_UPDATE))
@@ -198,7 +192,7 @@ class ProductControllerTest {
         Mockito.when(productService.getById(any())).thenReturn(null);
         String fakeId = "4";
 
-        MvcResult mockResult = mockMvc.perform(get(ProductController.PRODUCT_ADD_PATH)
+        MvcResult mockResult = mockMvc.perform(get(ProductController.PRODUCT_UPDATE_PATH)
                         .queryParam("id", fakeId))
                 .andExpect(status().isOk())
                 .andExpect(view().name(ViewNames.ERROR_VIEW))
@@ -219,7 +213,7 @@ class ProductControllerTest {
     void postNewOrUpdateProduct() throws Exception {
         Product mockProduct = createMockProductsPage().getContent().get(0);
 
-        MvcResult mockResult = mockMvc.perform(post(ProductController.PRODUCT_ADD_PATH)
+        MvcResult mockResult = mockMvc.perform(post(ProductController.PRODUCT_UPDATE_PATH)
                 .contentType(MediaType.APPLICATION_FORM_URLENCODED)
                 .content(createPostFormData(
                         "id", mockProduct.getId().toString(),
@@ -241,7 +235,7 @@ class ProductControllerTest {
     void postBadProduct() throws Exception {
         Product mockProduct = createMockProductsPage().getContent().get(0);
 
-        MvcResult mockResult = mockMvc.perform(post(ProductController.PRODUCT_ADD_PATH)
+        MvcResult mockResult = mockMvc.perform(post(ProductController.PRODUCT_UPDATE_PATH)
                         .contentType(MediaType.APPLICATION_FORM_URLENCODED)
                         .content(createPostFormData(
                                 "name", mockProduct.getName(),

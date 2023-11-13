@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="https://www.thymeleaf.org/thymeleaf-extras-springsecurity6">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+
+<div th:fragment="volumeTable" class="col-md d-flex overflow-scroll rounded-4 px-0">
+    <table class="table table-responsive table-striped">
+        <thead class="table-dark">
+        <tr>
+            <th>ID</th>
+            <th>Description</th>
+            <th>Value Code</th>
+            <th>Number of Products</th>
+            <th>Creation Date</th>
+            <th></th>
+            <th sec:authorize="hasRole('ROLE_ADMIN')"></th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="vol : ${volumes}" class="volume-row">
+            <td th:text="${vol.id}">ID value</td>
+            <td th:text="${vol.description}">description value</td>
+            <td th:text="${vol.valueCode}">code value</td>
+            <td th:text="${vol.products.size()}">number of products</td>
+            <td th:text="${#temporals.format(vol.createdDate, 'dd-MM-yyyy, HH:mm')}">date created</td>
+            <td>
+                <a class="btn btn-outline-primary volUpdateBtn"
+                   th:link="@{/volumes/update(id=${vol.id})}">Update</a></td>
+            <td sec:authorize="hasRole('ROLE_ADMIN')">
+                <a class="btn btn-outline-danger volDeleteBtn"
+                   th:link="@{/volumes/delete(id=${vol.id})}">Delete</a></td>
+        </tr>
+        </tbody>
+    </table>
+</div>
+
+</body>
+</html>

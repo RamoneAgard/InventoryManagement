@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="https://www.thymeleaf.org/thymeleaf-extras-springsecurity6">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+
+<div th:fragment="updateForm" class="col">
+    <div class="row justify-content-center my-2">
+        <div class="col-sm-4 d-flex justify-content-evenly">
+            <button class="btn btn-success" type="button" data-bs-toggle="collapse" data-bs-target="#volFormCollapse"
+                    th:aria-expanded="${volume.id} != null" aria-controls="volFormCollapse"
+                    th:text="${volume.id} == null ? |Create Volume| : |Update Volume|">
+                Create or Update Volume
+            </button>
+            <a class="btn btn-outline-success" id="volumeClearBtn"
+               th:if="${volume.id} != null" th:link="@{/volumes/update}">
+                Clear Update
+            </a>
+        </div>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-sm-5">
+            <div class="collapse p-1 bg-success-subtle rounded-3"
+                 th:classappend="${volume.id} != null ? |show|"
+                 id="volFormCollapse">
+                <form class="form" id="volumeDataForm" th:action="@{/volumes/update(id=${volume.id})}" method="post" th:object="${volume}">
+
+                    <div class="mb-2">
+                        <label class="form-label" for="description">Volume Description</label>
+                        <span th:if="${#fields.hasErrors('description')}" th:errors="*{description}" class="text-danger"></span>
+                        <input class="form-control" type="text" id="description" maxlength="15" th:field="*{description}"
+                               title="Volume Description, no leading or trailing whitespaces" pattern=^[\S]+(\s?[\S]+)*$ placeholder="Volume Description" required>
+                    </div>
+
+                    <div class="mb-2">
+                        <label class="form-label" for="valueCode">Value Code</label>
+                        <span th:if="${#fields.hasErrors('valueCode')}" th:errors="*{valueCode}" class="text-danger"></span>
+                        <input class="form-control" type="number" id="valueCode" th:field="*{valueCode}"
+                               max="100000" min="0" placeholder="750" required>
+                    </div>
+
+                    <input type="hidden" th:field="*{version}" th:value="${volume.version}">
+                    <button class="btn btn-primary" type="submit" id="submit">Submit</button>
+
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

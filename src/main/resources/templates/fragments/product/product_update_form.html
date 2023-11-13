@@ -25,10 +25,10 @@
 
     <div class="row justify-content-center">
         <div class="col-sm-10 col-lg-8">
-            <div class="collapse p-1 bg-primary-subtle rounded-3"
+            <div class="collapse p-1 bg-success-subtle rounded-3"
                  th:classappend="${product.id} != null ? |show|"
                  id="formCollapse">
-                <form class="form" id="productForm" th:fragment="updateForm(product, categories, volumes)" th:action="@{/products/update(id=${product.id})}" th:object="${product}" method="post">
+                <form class="form" id="dataForm" th:action="@{/products/update(id=${product.id})}" th:object="${product}" method="post">
                     <div class="row">
                     <div class="col-md-6">
                         <div class="mb-2">

@@ -15,10 +15,8 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
-import org.springframework.validation.FieldError;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @Controller
@@ -27,7 +25,7 @@ public class ProductController {
 
     public static final String PRODUCT_PATH = "/products";
 
-    public static final String PRODUCT_ADD_PATH = "/products/update";
+    public static final String PRODUCT_UPDATE_PATH = "/products/update";
 
     public static final String PRODUCT_DELETE_PATH = "/products/delete";
 
@@ -68,11 +66,11 @@ public class ProductController {
 
         addPageToModel(name, categories, volumes, pageNumber, pageSize, model);
 
-        return "fragments/product_table.html :: productTable";
+        return ViewNames.PRODUCT_TABLE_FRAGMENT;
     }
 
     @PreAuthorize("hasRole('ROLE_EDITOR')")
-    @GetMapping(PRODUCT_ADD_PATH)
+    @GetMapping(PRODUCT_UPDATE_PATH)
     public String getUpdateForm(Model model,
                                 @RequestParam(required = false) Long id){
         Product product;
@@ -93,12 +91,12 @@ public class ProductController {
         model.addAttribute("categories", categoryList);
         model.addAttribute("volumes", volumeList);
 
-        return "fragments/product_update_form :: updateForm";
+        return ViewNames.PRODUCT_UPDATE_FRAGMENT;
     }
 
 
     @PreAuthorize("hasRole('ROLE_EDITOR')")
-    @PostMapping(PRODUCT_ADD_PATH)
+    @PostMapping(PRODUCT_UPDATE_PATH)
     public String processCreateOrUpdate(@Valid Product product,
                                         BindingResult bindingResult,
                                         Model model){
@@ -114,7 +112,7 @@ public class ProductController {
         model.addAttribute("categories", categoryList);
         model.addAttribute("volumes", volumeList);
 
-        return "fragments/product_update_form :: updateForm";
+        return ViewNames.PRODUCT_UPDATE_FRAGMENT;
     }
 
 
@@ -130,7 +128,7 @@ public class ProductController {
 
         if(productService.deleteById(id)){
             addPageToModel(name, categories, volumes, pageNumber, pageSize, model);
-            return "fragments/product_table.html :: productTable";
+            return ViewNames.PRODUCT_TABLE_FRAGMENT;
         }
 
         throw new NotFoundException("Product not found for ID: " + id);

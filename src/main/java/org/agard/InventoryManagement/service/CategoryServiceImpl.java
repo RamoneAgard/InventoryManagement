@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.agard.InventoryManagement.domain.Category;
 import org.agard.InventoryManagement.domain.Product;
 import org.agard.InventoryManagement.repositories.CategoryRepository;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -15,9 +16,11 @@ public class CategoryServiceImpl implements CategoryService {
 
     private final CategoryRepository categoryRepository;
 
+    private final Sort defaultSort = Sort.by("name");
+
     @Override
     public List<Category> getAllCategories() {
-        return categoryRepository.findAll();
+        return categoryRepository.findAll(defaultSort);
     }
 
     @Override

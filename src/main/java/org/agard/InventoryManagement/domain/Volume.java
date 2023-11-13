@@ -1,10 +1,7 @@
 package org.agard.InventoryManagement.domain;
 
 import jakarta.persistence.*;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Positive;
-import jakarta.validation.constraints.Size;
+import jakarta.validation.constraints.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 
@@ -28,10 +25,11 @@ public class Volume {
 
     @Column(unique = true)
     @NotBlank(message = "Volume Description cannot be blank")
-    @Size(min = 3, max = 30)
+    @Size(min = 3, max = 15)
     private String description;
 
     @Positive
+    @Max(100000)
     @NotNull(message = "Value cannot be null")
     private Integer valueCode;
 

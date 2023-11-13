@@ -19,12 +19,12 @@
     <hr class="border border-primary rounded">
 
     <div sec:authorize="hasRole('ROLE_EDITOR')" class="row mb-3" id="formContainer">
-      <th:block th:replace="~{fragments/product_update_form.html :: updateForm}"></th:block>
+      <th:block th:replace="~{fragments/product/product_update_form.html :: updateForm}"></th:block>
     </div>
 
     <div class="row justify-content-center mb-1">
       <div class="col">
-        <th:block th:replace="~{fragments/product_table.html :: filterForm(${categories}, ${volumes})}"></th:block>
+        <th:block th:replace="~{fragments/product/product_table.html :: filterForm(${categories}, ${volumes})}"></th:block>
       </div>
     </div>
 
@@ -35,7 +35,7 @@
   </div>
 
   <th:block th:replace="~{fragments/commonHead.html :: commonScripts}"></th:block>
-  <script th:src="@{scripts/requestProductTable.js}"></script>
+  <script th:src="@{scripts/requestDataUtils.js}"></script>
   <script th:src="@{scripts/productUpdateMain.js}"></script>
 </body>
 </html>

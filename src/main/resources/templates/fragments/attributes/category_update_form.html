@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="https://www.thymeleaf.org/thymeleaf-extras-springsecurity6">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+
+<div th:fragment="updateForm" class="col">
+  <div class="row justify-content-center my-2">
+    <div class="col-sm-4 d-flex justify-content-evenly">
+      <button class="btn btn-success" type="button" data-bs-toggle="collapse" data-bs-target="#catFormCollapse"
+              th:aria-expanded="${category.id} != null" aria-controls="catFormCollapse"
+              th:text="${category.id} == null ? |Create Category| : |Update Category|">
+        Create or Update Category
+      </button>
+      <a class="btn btn-outline-success" id="categoryClearBtn"
+         th:if="${category.id} != null" th:link="@{/categories/update}">
+        Clear Update
+      </a>
+    </div>
+  </div>
+
+  <div class="row justify-content-center">
+    <div class="col-sm-5">
+      <div class="collapse p-1 bg-success-subtle rounded-3"
+           th:classappend="${category.id} != null ? |show|"
+           id="catFormCollapse">
+        <form class="form" id="categoryDataForm" th:action="@{/categories/update(id=${category.id})}" method="post" th:object="${category}">
+
+          <div class="mb-2">
+            <label class="form-label" for="name">Name of Category</label>
+            <span th:if="${#fields.hasErrors('name')}" th:errors="*{name}" class="text-danger"></span>
+            <input class="form-control" type="text" id="name" maxlength="20" th:field="*{name}"
+                   title="Category name, no leading or trailing whitespaces" pattern=^[\S]+(\s?[\S]+)*$ placeholder="Category Name" required>
+          </div>
+
+          <input type="hidden" th:field="*{version}" th:value="${category.version}">
+          <button class="btn btn-primary" type="submit" id="submit">Submit</button>
+
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+</body>
+</html>

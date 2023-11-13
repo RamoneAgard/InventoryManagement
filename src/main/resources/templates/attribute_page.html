@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="https://www.thymeleaf.org/thymeleaf-extras-springsecurity6">
+<head>
+  <th:block th:replace="~{fragments/commonHead.html :: commonHead}"></th:block>
+  <title>Product List</title>
+</head>
+<body>
+  <th:block th:replace="~{fragments/navigation.html :: navbar('Attributes')}"></th:block>
+
+  <div class="container px-0">
+
+    <div class="row justify-content-center my-4">
+      <div  class="col d-flex justify-content-center">
+        <h2>Product Attributes</h2>
+      </div>
+    </div>
+
+    <div class="row justify-content-center">
+      <ul class="nav nav-tabs fs-5" id="attributeTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+          <button class="nav-link active" id="categoryTab" data-bs-toggle="tab" data-bs-target="#categoryPane"
+                  type="button" role="tab" aria-controls="categoryPane" aria-selected="true">Categories</button>
+        </li>
+        <li class="nav-item" role="presentation">
+          <button class="nav-link" id="volumeTab" data-bs-toggle="tab" data-bs-target="#volumePane"
+                  type="button" role="tab" aria-controls="volumePane" aria-selected="false">Volumes</button>
+        </li>
+      </ul>
+    </div>
+
+    <div class="tab-content row border border-top-0" id="attributeTabContent">
+<!--      content for categories-->
+      <div class="tab-pane fade show active" id="categoryPane" role="tabpanel" aria-labelledby="categoryTab" tabindex="0">
+        <div class="row justify-content-center my-4">
+          <div class="col d-flex justify-content-center">
+            <h4>Category Table</h4>
+          </div>
+        </div>
+
+        <hr class="border border-primary rounded">
+
+        <div class="row mb-3 " id="categoryFormContainer">
+          <th:block th:replace="~{fragments/attributes/category_update_form.html :: updateForm}"></th:block>
+        </div>
+
+        <div class="row justify-content-center px-2" id="categoryTableContainer">
+
+        </div>
+      </div>
+
+<!--      content for volumes-->
+      <div class="tab-pane fade" id="volumePane" role="tabpanel" aria-labelledby="volumeTab" tabindex="0">
+        <div class="row justify-content-center my-4">
+          <div class="col d-flex justify-content-center">
+            <h4>Volume Table</h4>
+          </div>
+        </div>
+
+        <hr class="border border-primary rounded">
+
+        <div class="row mb-3" id="volumeFormContainer">
+          <th:block th:replace="~{fragments/attributes/volume_update_form.html :: updateForm}"></th:block>
+        </div>
+
+        <div class="row justify-content-center px-2" id="volumeTableContainer">
+
+        </div>
+
+      </div>
+
+    </div>
+
+
+  </div>
+  <th:block th:replace="~{fragments/commonHead.html :: commonScripts}"></th:block>
+  <script th:src="@{scripts/requestDataUtils.js}"></script>
+  <script th:src="@{scripts/attributeUpdateMain.js}"></script>
+
+</body>
+</html>

@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="https://www.thymeleaf.org/thymeleaf-extras-springsecurity6">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+
+<div th:fragment="categoryTable" class="col-md d-flex overflow-scroll rounded-4 px-0">
+    <table class="table table-responsive table-striped">
+        <thead class="table-dark">
+        <tr>
+            <th>ID</th>
+            <th>Name</th>
+            <th>Number of Products</th>
+            <th>Creation Date</th>
+            <th></th>
+            <th sec:authorize="hasRole('ROLE_ADMIN')"></th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="cat : ${categories}" class="category-row">
+            <td th:text="${cat.id}">ID value</td>
+            <td th:text="${cat.name}">name value</td>
+            <td th:text="${cat.products.size()}">number of products</td>
+            <td th:text="${#temporals.format(cat.createdDate, 'dd-MM-yyyy, HH:mm')}">date created</td>
+            <td>
+                <a class="btn btn-outline-primary catUpdateBtn"
+                   th:link="@{/categories/update(id=${cat.id})}">Update</a></td>
+            <td sec:authorize="hasRole('ROLE_ADMIN')">
+                <a class="btn btn-outline-danger catDeleteBtn"
+                   th:link="@{/categories/delete(id=${cat.id})}">Delete</a></td>
+        </tr>
+        </tbody>
+    </table>
+</div>
+
+</body>
+</html>

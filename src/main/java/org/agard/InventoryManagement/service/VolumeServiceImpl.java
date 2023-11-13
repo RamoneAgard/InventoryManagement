@@ -3,6 +3,7 @@ package org.agard.InventoryManagement.service;
 import lombok.RequiredArgsConstructor;
 import org.agard.InventoryManagement.domain.Volume;
 import org.agard.InventoryManagement.repositories.VolumeRepository;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -14,9 +15,11 @@ public class VolumeServiceImpl implements VolumeService {
 
     private final VolumeRepository volumeRepository;
 
+    private final Sort defaultSort = Sort.by("valueCode");
+
     @Override
     public List<Volume> getAllVolumes() {
-        return volumeRepository.findAll();
+        return volumeRepository.findAll(defaultSort);
     }
 
     @Override

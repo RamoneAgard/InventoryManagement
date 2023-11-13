@@ -42,14 +42,25 @@ public class SecurityConfig {
         return new MvcRequestMatcher.Builder(introspector);
     }
 
+
     @Bean
     public SecurityFilterChain securityChain(HttpSecurity httpSecurity, MvcRequestMatcher.Builder mvc) throws Exception{
         httpSecurity.formLogin(Customizer.withDefaults());
         httpSecurity.authorizeHttpRequests((authorize) -> authorize
-                        .requestMatchers(mvc.pattern("/products/update")).hasRole("EDITOR")
-                        .requestMatchers(mvc.pattern("/")).permitAll()
+                        .requestMatchers(mvc.pattern("/attributes/**")).hasRole("EDITOR")
+                        .requestMatchers(mvc.pattern("/users/**")).hasRole("ADMIN")
+                        .requestMatchers(mvc.pattern("/styles/**")).permitAll()
                         .requestMatchers(antMatcher("/h2-console/**")).permitAll()
-                        .anyRequest().authenticated()//.hasRole("USER") will add this later so all requests need a signed-in user
+                        .anyRequest().hasRole("USER")
+                )
+                .formLogin((formLogin) -> formLogin
+                        .loginPage("/login")
+                        .defaultSuccessUrl("/")
+                        .permitAll()
+                )
+                .logout((logout) -> logout
+                        .logoutSuccessUrl("/login?logout")
+                        .permitAll()
                 )
                 .csrf((csrf) -> csrf
                         .ignoringRequestMatchers(antMatcher("/h2-console/**"))
