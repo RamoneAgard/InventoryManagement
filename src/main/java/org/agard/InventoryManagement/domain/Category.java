@@ -12,7 +12,7 @@ import java.util.Set;
 
 @Getter
 @Setter
-@EqualsAndHashCode(of = "id")
+@EqualsAndHashCode(exclude = "products")
 @ToString(exclude = "products")
 @Builder
 @AllArgsConstructor
@@ -25,7 +25,7 @@ public class Category {
 
     @Column(unique = true)
     @NotBlank(message = "Category Name cannot be blank")
-    @Size(min = 3, max = 20)
+    @Size(min = 3, max = 20, message = "Category Name must be between 3 and 20 characters")
     private String name;
 
     @Builder.Default

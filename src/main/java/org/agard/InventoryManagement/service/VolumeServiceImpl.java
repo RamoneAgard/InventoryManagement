@@ -7,6 +7,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 
 
 @Service
@@ -23,9 +24,8 @@ public class VolumeServiceImpl implements VolumeService {
     }
 
     @Override
-    public Volume getById(Long id) {
-        return volumeRepository.findById(id)
-                .orElse(null);
+    public Optional<Volume> getById(Long id) {
+        return volumeRepository.findById(id);
     }
 
     @Override

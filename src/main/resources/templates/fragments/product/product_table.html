@@ -71,7 +71,7 @@
                     </tr>
                     </thead>
                     <tbody>
-                    <tr th:each="prod : ${products}" class="product-row">
+                    <tr th:each="prod : ${productPage.getContent()}" class="product-row">
                         <td th:text="${prod.itemCode}">item code value</td>
                         <td th:text="${prod.upc}">upc value</td>
                         <td th:text="${prod.name}">name value</td>
@@ -100,34 +100,37 @@
             </div>
         </div>
 
-        <div class="row justify-content-center">
+        <div class="row justify-content-center flex-column">
             <div class="col">
                 <nav>
-                    <ul class="pagination justify-content-center">
+                    <ul class="pagination justify-content-center mb-0">
                         <li class="page-item"
-                            th:classappend="${hasPrevious} == false ? |disabled|">
+                            th:classappend="${productPage.hasPrevious()} == false ? |disabled|">
                             <a class="page-link btn rounded-start rounded-end-0" id="previousPage"
                                th:link="@{/products/table(name=${nameQuery},
                             categories=${categoriesQuery},
                             volumes=${volumesQuery},
-                            pageNumber=${pageNumber} - 1,
-                            pageSize=${pageSize})}">
+                            pageNumber=${productPage.getNumber()} - 1,
+                            pageSize=${productPage.getSize()})}">
                                 Previous
                             </a>
                         </li>
                         <li class="page-item"
-                            th:classappend="${hasNext} == false ? |disabled|">
+                            th:classappend="${productPage.hasNext()} == false ? |disabled|">
                             <a class="page-link btn rounded-start-0 rounded-end" id="nextPage"
                                th:link="@{/products/table(name=${nameQuery},
                             categories=${categoriesQuery},
                             volumes=${volumesQuery},
-                            pageNumber=${pageNumber} + 1,
-                            pageSize=${pageSize})}">
+                            pageNumber=${productPage.getNumber()} + 1,
+                            pageSize=${productPage.getSize()})}">
                                 Next
                             </a>
                         </li>
                     </ul>
                 </nav>
+            </div>
+            <div class="col d-flex justify-content-center">
+                <small th:text="|page | + ${productPage.getNumber() + 1} + | of | +  ${productPage.getTotalPages()}"></small>
             </div>
         </div>
     </th:block>

@@ -25,6 +25,8 @@ import java.util.stream.Collectors;
 @ControllerAdvice
 public class CustomErrorController {
 
+    public static final String RESOURCE_DENIED_PATH = "/unauthorized";
+
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     @ExceptionHandler(TransactionSystemException.class)
     String handleJPAViolation(TransactionSystemException e, Model model) {
@@ -80,7 +82,7 @@ public class CustomErrorController {
     }
 
     @ResponseStatus(HttpStatus.FORBIDDEN)
-    @GetMapping("/unauthorized")
+    @GetMapping(RESOURCE_DENIED_PATH)
     public String resourceAccessDenied(Model model){
 
         List<String> errorList = new ArrayList<>();

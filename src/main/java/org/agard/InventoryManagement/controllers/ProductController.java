@@ -1,8 +1,10 @@
 package org.agard.InventoryManagement.controllers;
 
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.agard.InventoryManagement.Exceptions.NotFoundException;
+import org.agard.InventoryManagement.ViewModels.ProductForm;
 import org.agard.InventoryManagement.domain.Category;
 import org.agard.InventoryManagement.domain.Product;
 import org.agard.InventoryManagement.domain.Volume;
@@ -21,6 +23,7 @@ import java.util.List;
 
 @Controller
 @RequiredArgsConstructor
+@PreAuthorize("hasRole('ROLE_USER')")
 public class ProductController {
 
     public static final String PRODUCT_PATH = "/products";
@@ -46,25 +49,20 @@ public class ProductController {
 
         model.addAttribute("categories", categoryList);
         model.addAttribute("volumes", volumeList);
-        model.addAttribute("product", new Product());
+        model.addAttribute("productForm", new ProductForm());
 
         return ViewNames.PRODUCT_VIEW;
     }
 
     @RequestMapping(value = PRODUCT_TABLE_PATH, method = {RequestMethod.GET, RequestMethod.POST})
-    public String getProductTable(@RequestParam(required = false) String name,
-                                  @RequestParam(required = false, name = "category") List<Long> categories,
-                                  @RequestParam(required = false, name = "volume") List<Long> volumes,
-                                  @RequestParam(defaultValue = "1") Integer pageNumber,
+    public String getProductTable(@RequestParam(required = false, name = "name") String nameQuery,
+                                  @RequestParam(required = false, name = "category") List<Long> categoriesQuery,
+                                  @RequestParam(required = false, name = "volume") List<Long> volumesQuery,
+                                  @RequestParam(defaultValue = "0") Integer pageNumber,
                                   @RequestParam(required = false) Integer pageSize,
                                   Model model){
-        System.out.println("name: " + name);
-        System.out.println("categories: " + categories);
-        System.out.println("volumes: " + volumes);
-        System.out.println("pageNumber: " + pageNumber);
-        System.out.println("pageSize: " + pageSize);
 
-        addPageToModel(name, categories, volumes, pageNumber, pageSize, model);
+        addPageToModel(nameQuery, categoriesQuery, volumesQuery, pageNumber, pageSize, model);
 
         return ViewNames.PRODUCT_TABLE_FRAGMENT;
     }
@@ -73,13 +71,13 @@ public class ProductController {
     @GetMapping(PRODUCT_UPDATE_PATH)
     public String getUpdateForm(Model model,
                                 @RequestParam(required = false) Long id){
-        Product product;
+        ProductForm productForm;
         if(id == null){
-            product = new Product();
+            productForm = new ProductForm();
         }
         else {
-            product = productService.getById(id);
-            if(product == null){
+            productForm = productService.getFormById(id);
+            if(productForm == null){
                 throw new NotFoundException( "Product not found for ID: " + id);
             }
         }
@@ -87,7 +85,7 @@ public class ProductController {
         List<Category> categoryList = categoryService.getAllCategories();
         List<Volume> volumeList = volumeService.getAllVolumes();
 
-        model.addAttribute("product", product);
+        model.addAttribute("productForm", productForm);
         model.addAttribute("categories", categoryList);
         model.addAttribute("volumes", volumeList);
 
@@ -97,15 +95,17 @@ public class ProductController {
 
     @PreAuthorize("hasRole('ROLE_EDITOR')")
     @PostMapping(PRODUCT_UPDATE_PATH)
-    public String processCreateOrUpdate(@Valid Product product,
+    public String processCreateOrUpdate(@Valid ProductForm productForm,
                                         BindingResult bindingResult,
+                                        HttpServletResponse response,
                                         Model model){
 
         if(!bindingResult.hasErrors()){
-            System.out.println(model);
-            productService.saveProduct(product);
-            model.addAttribute("product", new Product());
+            productService.saveProduct(productForm);
+            response.setStatus(201);
+            model.addAttribute("productForm", new ProductForm());
         }
+
         List<Category> categoryList = categoryService.getAllCategories();
         List<Volume> volumeList = volumeService.getAllVolumes();
 
@@ -122,7 +122,7 @@ public class ProductController {
                                     @RequestParam(required = false) String name,
                                     @RequestParam(required = false, name = "category") List<Long> categories,
                                     @RequestParam(required = false, name = "volume") List<Long> volumes,
-                                    @RequestParam(defaultValue = "1") Integer pageNumber,
+                                    @RequestParam(defaultValue = "0") Integer pageNumber,
                                     @RequestParam(required = false) Integer pageSize,
                                     Model model){
 
@@ -142,16 +142,11 @@ public class ProductController {
                                 Integer pageSize,
                                 Model model){
         Page<Product> productPage = productService.filterProducts(name, categories, volumes, pageNumber, pageSize);
-        List<Product> products = productPage.getContent();
 
-        model.addAttribute("products", products);
-        model.addAttribute("hasNext", productPage.hasNext());
-        model.addAttribute("hasPrevious", productPage.hasPrevious());
+        model.addAttribute("productPage", productPage);
         model.addAttribute("nameQuery", name);
         model.addAttribute("categoriesQuery", categories);
         model.addAttribute("volumesQuery", volumes);
-        model.addAttribute("pageNumber", pageNumber);
-        model.addAttribute("pageSize", pageSize);
     }
 
 

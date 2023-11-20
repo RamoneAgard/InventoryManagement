@@ -1,5 +1,6 @@
 package org.agard.InventoryManagement.controllers;
 
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.agard.InventoryManagement.Exceptions.NotFoundException;
@@ -45,14 +46,13 @@ public class CategoryController {
     @GetMapping(CATEGORY_TABLE_PATH)
     public String getCategoryTable(Model model){
 
-
         model.addAttribute("categories",
                 categoryService.getAllCategories());
 
         return ViewNames.CATEGORY_TABLE_FRAGMENT;
     }
 
-    // May integrate this with getCategories method so form and list are in same view
+
     @GetMapping(CATEGORY_UPDATE_PATH)
     public String getCategoryUpdate(@RequestParam(required = false) Long id,
                                     Model model){
@@ -60,10 +60,9 @@ public class CategoryController {
         if(id == null){
             category = new Category();
         } else {
-            category = categoryService.getById(id);
-            if(category == null){
+            category = categoryService.getById(id).orElseThrow(()-> {
                 throw new NotFoundException("Category not found for ID: " + id);
-            }
+            });
         }
         model.addAttribute("category", category);
 
@@ -73,9 +72,11 @@ public class CategoryController {
     @PostMapping(CATEGORY_UPDATE_PATH)
     public String processCreateOrUpdate(@Valid Category category,
                                         BindingResult bindingResult,
+                                        HttpServletResponse response,
                                         Model model){
         if(!bindingResult.hasErrors()){
             categoryService.saveCategory(category);
+            response.setStatus(201);
             model.addAttribute("category", new Category());
         }
 

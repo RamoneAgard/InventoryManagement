@@ -11,7 +11,7 @@ import java.util.Set;
 
 @Getter
 @Setter
-@EqualsAndHashCode(of = "id")
+@EqualsAndHashCode(exclude = "products")
 @ToString(exclude = "products")
 @Builder
 @AllArgsConstructor

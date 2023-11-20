@@ -1,5 +1,6 @@
 package org.agard.InventoryManagement.config;
 
+import org.agard.InventoryManagement.controllers.CustomErrorController;
 import org.agard.InventoryManagement.util.ViewNames;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -24,6 +25,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.access.expression.DefaultWebSecurityExpressionHandler;
+import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
+import org.springframework.security.web.authentication.SimpleUrlAuthenticationSuccessHandler;
 import org.springframework.security.web.servlet.util.matcher.MvcRequestMatcher;
 import org.springframework.web.servlet.handler.HandlerMappingIntrospector;
 import org.thymeleaf.spring6.expression.Mvc;
@@ -69,7 +72,7 @@ public class SecurityConfig {
                                 .frameOptions((frameOptions) -> frameOptions.disable())
                         )
                 .exceptionHandling((exceptionHandling) -> exceptionHandling
-                        .accessDeniedPage("/unauthorized")
+                        .accessDeniedPage(CustomErrorController.RESOURCE_DENIED_PATH)
                 );
         return httpSecurity.build();
     }

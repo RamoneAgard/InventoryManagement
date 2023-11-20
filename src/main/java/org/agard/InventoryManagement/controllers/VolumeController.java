@@ -1,6 +1,7 @@
 package org.agard.InventoryManagement.controllers;
 
 
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.agard.InventoryManagement.Exceptions.NotFoundException;
@@ -47,10 +48,9 @@ public class VolumeController {
         if(id == null){
             volume = new Volume();
         } else {
-            volume = volumeService.getById(id);
-            if(volume == null){
+            volume = volumeService.getById(id).orElseThrow(()-> {
                 throw new NotFoundException("Volume not found for ID: " + id);
-            }
+            });
         }
         model.addAttribute("volume", volume);
 
@@ -61,9 +61,11 @@ public class VolumeController {
     @PostMapping(VOLUME_UPDATE_PATH)
     public String processCreateOrUpdate(@Valid Volume volume,
                                         BindingResult bindingResult,
+                                        HttpServletResponse response,
                                         Model model){
         if(!bindingResult.hasErrors()){
             volumeService.saveVolume(volume);
+            response.setStatus(201);
             model.addAttribute("volume", new Volume());
         }
 

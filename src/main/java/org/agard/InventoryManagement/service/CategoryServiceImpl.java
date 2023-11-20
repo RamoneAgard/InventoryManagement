@@ -8,6 +8,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 @RequiredArgsConstructor
@@ -24,8 +25,8 @@ public class CategoryServiceImpl implements CategoryService {
     }
 
     @Override
-    public Category getById(Long id) {
-        return categoryRepository.findById(id).orElse(null);
+    public Optional<Category> getById(Long id) {
+        return categoryRepository.findById(id);
     }
 
     @Override

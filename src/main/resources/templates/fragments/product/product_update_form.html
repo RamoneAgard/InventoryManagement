@@ -10,14 +10,14 @@
 
 <div th:fragment="updateForm" class="col">
     <div class="row justify-content-center my-2">
-        <div class="col-sm-4 d-flex justify-content-evenly">
+        <div class="col-sm-auto d-flex justify-content-evenly">
             <button class="btn btn-success" type="button" data-bs-toggle="collapse" data-bs-target="#formCollapse"
-                    th:aria-expanded="${product.id} != null" aria-controls="formCollapse"
-                    th:text="${product.id} == null ? |Create Product| : |Update Product|">
+                    th:aria-expanded="${productForm.id} != null" aria-controls="formCollapse"
+                    th:text="${productForm.id} == null ? |Create Product| : |Update Product|">
                 Create or Update Product
             </button>
             <button class="btn btn-outline-success" id="clearUpdate"
-               th:if="${product.id} != null" th:link="@{/products/update}">
+               th:if="${productForm.id} != null" th:link="@{/products/update}">
                 Clear Update
             </button>
         </div>
@@ -26,9 +26,9 @@
     <div class="row justify-content-center">
         <div class="col-sm-10 col-lg-8">
             <div class="collapse p-1 bg-success-subtle rounded-3"
-                 th:classappend="${product.id} != null ? |show|"
+                 th:classappend="${productForm.id} != null ? |show|"
                  id="formCollapse">
-                <form class="form" id="dataForm" th:action="@{/products/update(id=${product.id})}" th:object="${product}" method="post">
+                <form class="form" id="dataForm" th:action="@{/products/update(id=${productForm.id})}" th:object="${productForm}" method="post">
                     <div class="row">
                     <div class="col-md-6">
                         <div class="mb-2">
@@ -53,16 +53,18 @@
                         </div>
 
                         <div class="mb-2">
-                            <label class="form-label" for="category">Product Category</label>
-                            <select class="form-select" th:field="*{category}" id="category" name="Category" required>
-                                <option th:each="cat : ${categories}" th:value="${cat.id}" th:text="${cat.name}">Option</option>
+                            <label class="form-label" for="categoryId">Product Category</label>
+                            <select class="form-select" id="categoryId" name="categoryId" required>
+                                <option th:if="${productForm.categoryId} == null" value="" selected disabled>Select a Category</option>
+                                <option th:each="cat : ${categories}" th:value="${cat.id}" th:text="${cat.name}" th:selected="${cat.id} == *{categoryId}">Option</option>
                             </select>
                         </div>
 
                         <div class="mb-2">
-                            <label class="form-label" for="volume">Volume</label>
-                            <select class="form-select" th:field="*{volume}" id="volume" name="Volume" required>
-                                <option th:each="vol : ${volumes}" th:value="${vol.id}" th:text="${vol.description}">Option</option>
+                            <label class="form-label" for="volumeId">Volume</label>
+                            <select class="form-select"  id="volumeId" name="volumeId" required>
+                                <option th:if="${productForm.volumeId} == null" value="" th:disabled="true" th:selected="true">Select Unit Volume</option>
+                                <option th:each="vol : ${volumes}" th:value="${vol.id}" th:text="${vol.description}" th:selected="${vol.id} == *{volumeId}">Option</option>
                             </select>
                         </div>
                     </div>
@@ -94,7 +96,6 @@
                     </div>
 
                     <div class="col-12 d-flex justify-content-center">
-                        <input type="hidden" th:field="*{version}" th:value="${product.version}">
                         <button class="btn btn-primary" type="submit" id="submit">Submit</button>
                     </div>
                     </div>

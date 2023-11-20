@@ -2,6 +2,8 @@ package org.agard.InventoryManagement.domain;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
 
 @Entity
 public class OrderItem {
@@ -9,7 +11,10 @@ public class OrderItem {
     @Id
     private Long id;
 
-    //private Product product;
+    @ManyToOne
+    private Product product;
 
-    private Integer quantity;
+    private Integer requestedQuantity;
+
+    private Integer receivedQuantity;
 }

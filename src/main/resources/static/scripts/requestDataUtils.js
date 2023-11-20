@@ -137,10 +137,14 @@ function fetchData(callback, method, url, data){
 
     xhttp.open(method, url, true);
     xhttp.onload = function () {
-        if(xhttp.status === 200){
+        if(xhttp.status === 200 || xhttp.status === 201){
             console.log(xhttp.status);
-            callback(xhttp.response);
-            //resultEl.innerHTML = xhttp.response;
+            if(/login$/.test(xhttp.responseURL)){
+                console.log(window.location);
+                window.location.reload();
+            } else {
+                callback(xhttp.response);
+            }
         }
         else {
             alert("Problem retrieving data:" + xhttp.status);
