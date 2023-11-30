@@ -1,6 +1,7 @@
 package org.agard.InventoryManagement.service;
 
 import lombok.RequiredArgsConstructor;
+import org.agard.InventoryManagement.Exceptions.NotFoundException;
 import org.agard.InventoryManagement.domain.Category;
 import org.agard.InventoryManagement.domain.Product;
 import org.agard.InventoryManagement.repositories.CategoryRepository;
@@ -8,7 +9,6 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 
 @RequiredArgsConstructor
@@ -25,8 +25,11 @@ public class CategoryServiceImpl implements CategoryService {
     }
 
     @Override
-    public Optional<Category> getById(Long id) {
-        return categoryRepository.findById(id);
+    public Category getById(Long id) {
+        return categoryRepository.findById(id)
+                .orElseThrow(()-> {
+                    throw new NotFoundException("Category not found for ID: " + id);
+                });
     }
 
     @Override
@@ -45,11 +48,11 @@ public class CategoryServiceImpl implements CategoryService {
 
 
     @Override
-    public boolean deleteById(Long id) {
+    public void deleteById(Long id) {
         if(categoryRepository.existsById(id)){
             categoryRepository.deleteById(id);
-            return true;
+            return;
         }
-        return false;
+        throw new NotFoundException("Category not found for ID: " + id);
     }
 }

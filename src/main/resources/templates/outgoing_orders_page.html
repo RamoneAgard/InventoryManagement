@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="https://www.thymeleaf.org/thymeleaf-extras-springsecurity6">
+<head>
+    <th:block th:replace="~{fragments/commonHead.html :: commonHead}"></th:block>
+    <title>Outgoing Orders</title>
+</head>
+<body>
+    <div th:replace="~{fragments/navigation.html :: navbar(nowActive='Orders')}"></div>
+
+    <div class="container">
+
+        <div class="row justify-content-center my-4">
+            <div class="col d-flex justify-content-center">
+                <h2>Outgoing Orders</h2>
+            </div>
+        </div>
+
+        <hr class="border border-primary rounded">
+
+        <div class="row justify-content-center mb-3">
+            <div class="col-auto" id="orderFormDiv">
+                <th:block th:replace="~{fragments/orders/outgoing_order_form.html :: orderForm}"></th:block>
+            </div>
+        </div>
+
+        <div class="row justify-content-center">
+            <ul class="nav nav-tabs fs-5" id="tablesTabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="ordersTab" data-bs-toggle="tab" data-bs-target="#ordersPane"
+                            type="button" role="tab" aria-controls="ordersPane" aria-selected="true">Orders</button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="productsTab" data-bs-toggle="tab" data-bs-target="#productsPane"
+                            type="button" role="tab" aria-controls="productsPane" aria-selected="false">Products</button>
+                </li>
+            </ul>
+        </div>
+
+        <div class="tab-content row border border-top-0" id="tablesTabContent">
+
+            <!--            content for order table-->
+            <div class="tab-pane fade show active" id="ordersPane" role="tabpanel" aria-labelledby="ordersTab" tabindex="0">
+                <div class="row justify-content-center my-3">
+                    <div class="col d-flex justify-content-center">
+                        <h5>Outgoing Orders Table</h5>
+                    </div>
+                </div>
+
+
+                <div class="row justify-content-center mb-2">
+                    <div class="col">
+                        <th:block th:replace="~{fragments/orders/order_table.html :: filterForm('out')}"></th:block>
+                    </div>
+                </div>
+
+                <div class="row justify-content-center" id="orderTableContainer">
+
+                </div>
+
+            </div>
+
+            <!--            content for product table-->
+            <div class="tab-pane fade" id="productsPane" role="tabpanel" aria-labelledby="productsTab" tabindex="0">
+                <div class="row justify-content-center my-3">
+                    <div class="col d-flex justify-content-center">
+                        <h5>Products Table</h5>
+                    </div>
+                </div>
+
+
+                <div class="row justify-content-center mb-2">
+                    <div class="col">
+                        <th:block th:replace="~{fragments/product/product_table.html :: filterForm(${categories}, ${volumes}, 'out')}"></th:block>
+                    </div>
+                </div>
+
+                <div class="row justify-content-center" id="productTableContainer">
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <th:block th:replace="~{fragments/commonHead.html :: commonScripts}"></th:block>
+    <script th:src="@{/scripts/requestDataUtils.js}"></script>
+    <script th:src="@{/scripts/orderUtil.js}"></script>
+</body>
+</html>

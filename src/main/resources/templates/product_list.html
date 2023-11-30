@@ -6,9 +6,9 @@
     <title>Product List</title>
 </head>
 <body>
-  <div th:replace="~{fragments/navigation.html :: navbar('Products')}"></div>
+  <div th:replace="~{fragments/navigation.html :: navbar(nowActive='Products')}"></div>
 
-  <div class="container px-0">
+  <div class="container">
 
     <div class="row justify-content-center my-4">
       <div class="col d-flex justify-content-center">
@@ -22,9 +22,9 @@
       <th:block th:replace="~{fragments/product/product_update_form.html :: updateForm}"></th:block>
     </div>
 
-    <div class="row justify-content-center mb-1">
+    <div class="row justify-content-center mb-2">
       <div class="col">
-        <th:block th:replace="~{fragments/product/product_table.html :: filterForm(${categories}, ${volumes})}"></th:block>
+        <th:block th:replace="~{fragments/product/product_table.html :: filterForm(${categories}, ${volumes}, 'Products')}"></th:block>
       </div>
     </div>
 
@@ -35,7 +35,7 @@
   </div>
 
   <th:block th:replace="~{fragments/commonHead.html :: commonScripts}"></th:block>
-  <script th:src="@{scripts/requestDataUtils.js}"></script>
-  <script th:src="@{scripts/productUpdateMain.js}"></script>
+  <script th:src="@{/scripts/requestDataUtils.js}"></script>
+  <script th:src="@{/scripts/productUpdateMain.js}"></script>
 </body>
 </html>

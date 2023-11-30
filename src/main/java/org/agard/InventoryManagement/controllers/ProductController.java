@@ -16,6 +16,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.util.StringUtils;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
@@ -60,12 +61,21 @@ public class ProductController {
                                   @RequestParam(required = false, name = "volume") List<Long> volumesQuery,
                                   @RequestParam(defaultValue = "0") Integer pageNumber,
                                   @RequestParam(required = false) Integer pageSize,
+                                  @RequestParam(required = false) String orderType,
                                   Model model){
 
         addPageToModel(nameQuery, categoriesQuery, volumesQuery, pageNumber, pageSize, model);
 
+        if(orderType.equals("out") || orderType.equals("in")){
+            model.addAttribute("orderType", orderType);
+        }
+        else{
+            model.addAttribute("orderType", null);
+        }
+
         return ViewNames.PRODUCT_TABLE_FRAGMENT;
     }
+
 
     @PreAuthorize("hasRole('ROLE_EDITOR')")
     @GetMapping(PRODUCT_UPDATE_PATH)
@@ -77,9 +87,6 @@ public class ProductController {
         }
         else {
             productForm = productService.getFormById(id);
-            if(productForm == null){
-                throw new NotFoundException( "Product not found for ID: " + id);
-            }
         }
 
         List<Category> categoryList = categoryService.getAllCategories();
@@ -126,12 +133,10 @@ public class ProductController {
                                     @RequestParam(required = false) Integer pageSize,
                                     Model model){
 
-        if(productService.deleteById(id)){
-            addPageToModel(name, categories, volumes, pageNumber, pageSize, model);
-            return ViewNames.PRODUCT_TABLE_FRAGMENT;
-        }
+        productService.deleteById(id);
+        addPageToModel(name, categories, volumes, pageNumber, pageSize, model);
 
-        throw new NotFoundException("Product not found for ID: " + id);
+        return ViewNames.PRODUCT_TABLE_FRAGMENT;
     }
 
 
@@ -141,7 +146,8 @@ public class ProductController {
                                 Integer pageNumber,
                                 Integer pageSize,
                                 Model model){
-        Page<Product> productPage = productService.filterProducts(name, categories, volumes, pageNumber, pageSize);
+
+        Page<Product> productPage = productService.filterProductPage(name, categories, volumes, pageNumber, pageSize);
 
         model.addAttribute("productPage", productPage);
         model.addAttribute("nameQuery", name);

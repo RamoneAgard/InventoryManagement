@@ -60,9 +60,7 @@ public class CategoryController {
         if(id == null){
             category = new Category();
         } else {
-            category = categoryService.getById(id).orElseThrow(()-> {
-                throw new NotFoundException("Category not found for ID: " + id);
-            });
+            category = categoryService.getById(id);
         }
         model.addAttribute("category", category);
 
@@ -86,12 +84,13 @@ public class CategoryController {
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     @GetMapping(CATEGORY_DELETE_PATH)
     public String deleteCategoryById(@RequestParam Long id, Model model){
-        if(categoryService.deleteById(id)){
-            model.addAttribute("categories",
-                    categoryService.getAllCategories());
-            return ViewNames.CATEGORY_TABLE_FRAGMENT;
-        }
-        throw new NotFoundException("Category not found for ID: " + id);
+
+        categoryService.deleteById(id);
+        model.addAttribute("categories",
+                categoryService.getAllCategories());
+
+        return ViewNames.CATEGORY_TABLE_FRAGMENT;
+
     }
 
 }

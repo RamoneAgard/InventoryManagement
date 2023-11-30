@@ -1,13 +1,13 @@
 package org.agard.InventoryManagement.service;
 
 import lombok.RequiredArgsConstructor;
+import org.agard.InventoryManagement.Exceptions.NotFoundException;
 import org.agard.InventoryManagement.domain.Volume;
 import org.agard.InventoryManagement.repositories.VolumeRepository;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Optional;
 
 
 @Service
@@ -24,8 +24,11 @@ public class VolumeServiceImpl implements VolumeService {
     }
 
     @Override
-    public Optional<Volume> getById(Long id) {
-        return volumeRepository.findById(id);
+    public Volume getById(Long id) {
+        return volumeRepository.findById(id)
+                .orElseThrow(()-> {
+                    throw new NotFoundException("Volume not found for ID: " + id);
+                });
     }
 
     @Override
@@ -34,11 +37,11 @@ public class VolumeServiceImpl implements VolumeService {
     }
 
     @Override
-    public boolean deleteById(Long id) {
+    public void deleteById(Long id) {
         if(volumeRepository.existsById(id)){
             volumeRepository.deleteById(id);
-            return true;
+            return;
         }
-        return false;
+        throw new NotFoundException("Volume not found for ID: " + id);
     }
 }

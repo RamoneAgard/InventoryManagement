@@ -1,12 +1,9 @@
 package org.agard.InventoryManagement.BootstrapData;
 
 import lombok.RequiredArgsConstructor;
-import org.agard.InventoryManagement.domain.Category;
-import org.agard.InventoryManagement.domain.Product;
-import org.agard.InventoryManagement.domain.Volume;
-import org.agard.InventoryManagement.repositories.CategoryRepository;
-import org.agard.InventoryManagement.repositories.ProductRepository;
-import org.agard.InventoryManagement.repositories.VolumeRepository;
+import org.agard.InventoryManagement.ViewModels.OutgoingOrderForm;
+import org.agard.InventoryManagement.domain.*;
+import org.agard.InventoryManagement.repositories.*;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 
@@ -22,6 +19,9 @@ public final class BootStrapData implements CommandLineRunner {
     private final CategoryRepository categoryRepository;
 
     private final VolumeRepository volumeRepository;
+
+    private final OutgoingOrderRepository outgoingOrderRepository;
+    private final OrderItemRepository orderItemRepository;
 
     @Override
     public void run(String... args) throws Exception {
@@ -117,6 +117,23 @@ public final class BootStrapData implements CommandLineRunner {
         productRepository.saveAll(Arrays.asList(p1, p2, p3));
         //categoryRepository.saveAll(Arrays.asList(c1, c2, c3, c4));
         //volumeRepository.saveAll(Arrays.asList(v1, v2, v3));
+
+        OutgoingOrder outOrder1 = OutgoingOrder.builder()
+                .receiver("Maplewood WalMart")
+                .build();
+
+        OrderItem oItem = orderItemRepository.save(
+                OrderItem.builder()
+                .product(p1)
+                .quantity(10)
+                .price(BigDecimal.valueOf(64.00))
+                .build()
+        );
+
+        outOrder1.getItems().add(oItem);
+
+        outgoingOrderRepository.save(outOrder1);
+
     }
 
 }

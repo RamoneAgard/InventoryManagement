@@ -35,14 +35,15 @@ var pageObserver;
 if(tableDiv != null){
 
     document.addEventListener("DOMContentLoaded", function(event){
-        getInitialTable("/products/table", tableDiv);
-
+        let initUrl = "";
         if(filterForm != null){
+            initUrl = filterForm.getAttribute("action");
             filterForm.addEventListener("submit", function(event){
                 event.preventDefault();
                 getDataFilterData(filterForm, tableDiv);
             });
         }
+        getInitialTable(initUrl, tableDiv);
     });
 
     pageObserver = new MutationObserver(function(mutations, observer){
@@ -55,7 +56,7 @@ if(tableDiv != null){
     const tableObserverConfig = {
             subtree : true,
             childList : true,
-        };
+    };
     pageObserver.observe(tableDiv, tableObserverConfig);
 }
 

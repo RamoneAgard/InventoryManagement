@@ -1,10 +1,12 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
-    <meta charset="UTF-8">
+  <th:block th:replace="~{fragments/commonHead.html :: commonHead}"></th:block>
     <title>Error</title>
 </head>
 <body>
+  <th:block th:replace="~{fragments/navigation.html :: navbar(nowActive='Error')}"></th:block>
+
   <h2>An Error Occurred in the Application</h2>
   <p>Please allow us some time to fix this!</p>
   <br/>

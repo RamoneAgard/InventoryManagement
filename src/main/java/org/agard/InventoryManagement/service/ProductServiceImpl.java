@@ -3,9 +3,10 @@ package org.agard.InventoryManagement.service;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.agard.InventoryManagement.Exceptions.NotFoundException;
+import org.agard.InventoryManagement.ViewModels.ItemProduct;
 import org.agard.InventoryManagement.ViewModels.ProductForm;
 import org.agard.InventoryManagement.domain.Product;
-import org.agard.InventoryManagement.mappers.ProductFormMapper;
+import org.agard.InventoryManagement.mappers.ProductMapper;
 import org.agard.InventoryManagement.repositories.ProductRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -25,7 +26,7 @@ public class ProductServiceImpl implements ProductService {
 
     private final VolumeService volumeService;
 
-    private final ProductFormMapper productFormMapper;
+    private final ProductMapper productMapper;
 
     private final Integer DEFAULT_PAGE_SIZE = 20;
 
@@ -69,11 +70,18 @@ public class ProductServiceImpl implements ProductService {
      * @return Page of Product elements meeting input parameters
      */
     @Override
-    public Page<Product> filterProducts(String name, List<Long> categories, List<Long> volumes, Integer pageNumber, Integer pageSize) {
+    public Page<Product> filterProductPage(String name, List<Long> categories, List<Long> volumes, Integer pageNumber, Integer pageSize) {
 
         PageRequest pageRequest = buildPageRequest(pageNumber, pageSize);
+
         if(!StringUtils.hasText(name)){
             name = null;
+        }
+        if(categories != null && categories.size() == 0){
+            categories = null;
+        }
+        if(volumes != null && volumes.size() == 0){
+            volumes = null;
         }
 
         return productRepository.findAllWithFilters(name, categories, volumes, pageRequest);
@@ -84,22 +92,16 @@ public class ProductServiceImpl implements ProductService {
      * @param formToSave the Product to save to database, new or existing
      */
     @Override
-    public void saveProduct(@Valid ProductForm formToSave) throws NotFoundException {
+    public void saveProduct(@Valid ProductForm formToSave) {
         Product productToSave;
         if(formToSave.getId() == null){
             productToSave = new Product();
         }
         else{
-            productToSave = productRepository.findById(formToSave.getId()).orElseThrow(()-> {
-                throw new NotFoundException("Product not found for ID: " + formToSave.getId());
-            });
+            productToSave = getById(formToSave.getId());
         }
-        productToSave.setCategory(categoryService.getById(formToSave.getCategoryId()).orElseThrow(()-> {
-            throw new NotFoundException("Category not found for ID: " + formToSave.getCategoryId());
-        }));
-        productToSave.setVolume(volumeService.getById(formToSave.getVolumeId()).orElseThrow(()-> {
-            throw new NotFoundException("Volume not found for ID: " + formToSave.getVolumeId());
-        }));
+        productToSave.setCategory(categoryService.getById(formToSave.getCategoryId()));
+        productToSave.setVolume(volumeService.getById(formToSave.getVolumeId()));
         productToSave.setUpc(formToSave.getUpc());
         productToSave.setItemCode(formToSave.getItemCode());
         productToSave.setName(formToSave.getName());
@@ -111,31 +113,49 @@ public class ProductServiceImpl implements ProductService {
         productRepository.save(productToSave);
     }
 
+    @Override
+    public Product saveProduct(Product product) {
+        return productRepository.save(product);
+    }
+
 
     /**
      * @param id ID of the product to retrieve from database
-     * @return Product object with argument ID or null
+     * @return ProductForm object with argument ID or Exception is thrown
      */
     @Override
     public ProductForm getFormById(Long id) {
-        Product product = productRepository.findById(id).orElse(null);
-        if(product != null){
-            return productFormMapper.productToProductForm(product);
+        Product product = getById(id);
+        return productMapper.productToProductForm(product);
+    }
+
+    @Override
+    public ItemProduct getItemProductByCode(String itemCode) {
+        Product product = productRepository.findByItemCodeEqualsIgnoreCase(itemCode);
+        if(product == null){
+            throw new NotFoundException("Product not found for Item Code: " + itemCode);
         }
-        return null;
+        return productMapper.productToItemProduct(product);
+    }
+
+    @Override
+    public Product getById(Long id) {
+        return productRepository.findById(id)
+                .orElseThrow(() -> {
+                    throw new NotFoundException("Product not found for ID: " + id);
+                        });
     }
 
 
     /**
      * @param id ID of the Product to delete
-     * @return boolean indicating the success of deleting the target product
      */
     @Override
-    public boolean deleteById(Long id) {
+    public void deleteById(Long id) {
         if(productRepository.existsById(id)){
             productRepository.deleteById(id);
-            return true;
+            return;
         }
-        return false;
+        throw new NotFoundException("Product not found for ID: " + id);
     }
 }

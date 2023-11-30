@@ -1,2 +1,5 @@
-
+th {
+ resize:horizontal;
+ overflow:auto
+}
 

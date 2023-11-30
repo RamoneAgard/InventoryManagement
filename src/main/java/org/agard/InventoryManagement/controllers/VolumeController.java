@@ -48,9 +48,7 @@ public class VolumeController {
         if(id == null){
             volume = new Volume();
         } else {
-            volume = volumeService.getById(id).orElseThrow(()-> {
-                throw new NotFoundException("Volume not found for ID: " + id);
-            });
+            volume = volumeService.getById(id);
         }
         model.addAttribute("volume", volume);
 
@@ -75,14 +73,13 @@ public class VolumeController {
 
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     @GetMapping(VOLUME_DELETE_PATH)
-    public String deleteVolumeById(@RequestParam Long id,
-                                   Model model){
-        if(volumeService.deleteById(id)){
-            model.addAttribute("volumes",
-                    volumeService.getAllVolumes());
-            return ViewNames.VOLUME_TABLE_FRAGMENT;
-        }
-        throw new NotFoundException("Volume not found for ID: " + id);
+    public String deleteVolumeById(@RequestParam Long id, Model model){
+
+        volumeService.deleteById(id);
+        model.addAttribute("volumes",
+                volumeService.getAllVolumes());
+
+        return ViewNames.VOLUME_TABLE_FRAGMENT;
     }
 
 }

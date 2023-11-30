@@ -100,7 +100,7 @@ function setListenerForDataDelete(mutations, container, btnClass){
 
 function getDataFilterData(form, resultContainer) {
     const url = form.getAttribute("action");
-    const filterData = new FormData(filterForm);
+    const filterData = new FormData(form);
     const callback = (response) => {
         resultContainer.innerHTML = response;
     };
