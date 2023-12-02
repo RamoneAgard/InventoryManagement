@@ -1,9 +1,24 @@
 
 const catFormDiv = document.getElementById("categoryFormContainer");
 const catTableDiv = document.getElementById("categoryTableContainer");
+const catFilterForm = document.getElementById("catFilterForm");
+const catDataFormId = "categoryDataForm";
+const catDataFormClearBtnId = "categoryClearBtn";
+const catTableUpdateBtnClassName = "catUpdateBtn";
+const catTableDeleteBtnClassName = "catDeleteBtn";
+const catTableNextBtnId = "catNextPage";
+const catTablePreviousBtnId = "catPreviousPage";
+
 
 const volFormDiv = document.getElementById("volumeFormContainer");
 const volTableDiv = document.getElementById("volumeTableContainer");
+const volFilterForm = document.getElementById("volFilterForm");
+const volDataFormId = "volumeDataForm";
+const volDataFormClearBtnId = "volumeClearBtn";
+const volTableUpdateBtnClassName = "volUpdateBtn";
+const volTableDeleteBtnClassName = "volDeleteBtn";
+const volTableNextBtnId = "volNextPage";
+const volTablePreviousBtnId = "volPreviousPage";
 
 //set-up for the category update form
 var catFormObserver;
@@ -12,17 +27,17 @@ if(catFormDiv != null){
     var catTableUpdateAfterSubmit = () =>{};
     if(catTableDiv != null){
         catTableUpdateAfterSubmit = () => {
-            getInitialTable("/categories/table", catTableDiv);
+            getDataFilterData(catFilterForm, catTableDiv);
         };
     }
 
     document.addEventListener("DOMContentLoaded", function(){
-        setFormEvent(catFormDiv, catTableUpdateAfterSubmit, "categoryDataForm");
+        setFormEvent(catFormDiv, catTableUpdateAfterSubmit, catDataFormId);
     });
 
     catFormObserver = new MutationObserver(function(mutations, observer){
-        setListenerForDataForm(mutations, catFormDiv, catTableUpdateAfterSubmit, "categoryDataForm");
-        setListenerForClearUpdate(mutations, catFormDiv, "categoryClearBtn");
+        setListenerForDataForm(mutations, catFormDiv, catTableUpdateAfterSubmit, catDataFormId);
+        setListenerForClearUpdate(mutations, catFormDiv, catDataFormClearBtnId);
     });
     const catFormObserverConfig = {
         subtree: true,
@@ -37,14 +52,23 @@ var catTableObserver;
 if(catTableDiv != null){
 
     document.addEventListener("DOMContentLoaded", function(){
-        getInitialTable("/categories/table", catTableDiv);
+        let initUrl = "";
+        if(catFilterForm != null){
+            initUrl = catFilterForm.getAttribute("action");
+            catFilterForm.addEventListener("submit", function(event){
+                event.preventDefault();
+                getDataFilterData(catFilterForm, catTableDiv);
+            });
+        }
+        getInitialTable(initUrl, catTableDiv);
     });
 
     catTableObserver = new MutationObserver(function(mutations, observer){
+        setListenerForPages(mutations, catTableDiv, catTableNextBtnId, catTablePreviousBtnId);
         if(catFormDiv){
-            setListenerForDataUpdates(mutations, catFormDiv, "catUpdateBtn");
+            setListenerForDataUpdates(mutations, catFormDiv, catTableUpdateBtnClassName);
         }
-        setListenerForDataDelete(mutations, catTableDiv, "catDeleteBtn");
+        setListenerForDataDelete(mutations, catTableDiv, catTableDeleteBtnClassName);
     });
     const catTableObserverConfig = {
         subtree : true,
@@ -60,17 +84,17 @@ if(volFormDiv != null){
     var volTableUpdateAfterSubmit = () =>{};
     if(volTableDiv != null){
         volTableUpdateAfterSubmit = () => {
-            getInitialTable("/volumes/table", volTableDiv);
+            getDataFilterData(volFilterForm, volTableDiv);
         };
     }
 
     document.addEventListener("DOMContentLoaded", function(){
-        setFormEvent(volFormDiv, volTableUpdateAfterSubmit, "volumeDataForm");
+        setFormEvent(volFormDiv, volTableUpdateAfterSubmit, volDataFormId);
     });
 
     volFormObserver = new MutationObserver(function(mutations, observer){
-        setListenerForDataForm(mutations, volFormDiv, volTableUpdateAfterSubmit, "volumeDataForm");
-        setListenerForClearUpdate(mutations, volFormDiv, "volumeClearBtn");
+        setListenerForDataForm(mutations, volFormDiv, volTableUpdateAfterSubmit, volDataFormId);
+        setListenerForClearUpdate(mutations, volFormDiv, volDataFormClearBtnId);
     });
     const volFormObserverConfig = {
         subtree: true,
@@ -84,14 +108,23 @@ var volTableObserver;
 if(volTableDiv != null){
 
     document.addEventListener("DOMContentLoaded", function(){
-        getInitialTable("/volumes/table", volTableDiv);
+        let initUrl = "";
+        if(volFilterForm != null){
+            initUrl = volFilterForm.getAttribute("action");
+            volFilterForm.addEventListener("submit", function(event){
+                event.preventDefault();
+                getDataFilterData(volFilterForm, volTableDiv);
+            });
+        }
+        getInitialTable(initUrl, volTableDiv);
     });
 
     volTableObserver = new MutationObserver(function(mutations, observer){
+        setListenerForPages(mutations, volTableDiv, volTableNextBtnId, volTablePreviousBtnId);
         if(volFormDiv){
-            setListenerForDataUpdates(mutations, volFormDiv, "volUpdateBtn");
+            setListenerForDataUpdates(mutations, volFormDiv, volTableUpdateBtnClassName);
         }
-        setListenerForDataDelete(mutations, volTableDiv, "volDeleteBtn");
+        setListenerForDataDelete(mutations, volTableDiv, volTableDeleteBtnClassName);
     });
     const volTableObserverConfig = {
         subtree : true,

@@ -7,36 +7,83 @@
 </head>
 <body>
 
-<div th:fragment="volumeTable" class="col-md d-flex overflow-scroll rounded-4 px-0">
-    <table class="table table-responsive table-striped">
-        <thead class="table-dark">
-        <tr>
-            <th>ID</th>
-            <th>Description</th>
-            <th>Value Code</th>
-            <th>Number of Products</th>
-            <th>Creation Date</th>
-            <th></th>
-            <th sec:authorize="hasRole('ROLE_ADMIN')"></th>
-        </tr>
-        </thead>
-        <tbody>
-        <tr th:each="vol : ${volumes}" class="volume-row">
-            <td th:text="${vol.id}">ID value</td>
-            <td th:text="${vol.description}">description value</td>
-            <td th:text="${vol.valueCode}">code value</td>
-            <td th:text="${vol.products.size()}">number of products</td>
-            <td th:text="${#temporals.format(vol.createdDate, 'dd-MM-yyyy, HH:mm')}">date created</td>
-            <td>
-                <a class="btn btn-outline-primary volUpdateBtn"
-                   th:link="@{/volumes/update(id=${vol.id})}">Update</a></td>
-            <td sec:authorize="hasRole('ROLE_ADMIN')">
-                <a class="btn btn-outline-danger volDeleteBtn"
-                   th:link="@{/volumes/delete(id=${vol.id})}">Delete</a></td>
-        </tr>
-        </tbody>
-    </table>
-</div>
+<th:block th:fragment="volumeTable">
+    <div class="row justify-content-center px-2">
+        <div class="col-md d-flex overflow-scroll rounded-4 px-0">
+            <table class="table table-responsive table-striped">
+                <thead class="table-dark">
+                <tr>
+                    <th>ID</th>
+                    <th>Description</th>
+                    <th>Value Code</th>
+                    <th>Number of Products</th>
+                    <th>Creation Date</th>
+                    <th></th>
+                    <th sec:authorize="hasRole('ROLE_ADMIN')"></th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="vol : ${volumePage.getContent()}" class="volume-row">
+                    <td th:text="${vol.id}">ID value</td>
+                    <td th:text="${vol.description}">description value</td>
+                    <td th:text="${vol.valueCode}">code value</td>
+                    <td th:text="${vol.products.size()}">number of products</td>
+                    <td th:text="${#temporals.format(vol.createdDate, 'dd-MM-yyyy, HH:mm')}">date created</td>
+                    <td>
+                        <a class="btn btn-outline-primary volUpdateBtn"
+                           th:link="@{__${@volumeController.VOLUME_UPDATE_PATH}__(id=${vol.id})}">
+                            Update
+                        </a></td>
+                    <td sec:authorize="hasRole('ROLE_ADMIN')">
+                        <a class="btn btn-outline-danger volDeleteBtn"
+                           th:link="@{__${@volumeController.VOLUME_DELETE_PATH}__(
+                                                        id=${vol.id},
+                                                        description=${descriptionQuery},
+                                                        pageNumber=${volumePage.getNumber()},
+                                                        pageSize=${volumePage.getSize()}
+                                                        )}">
+                            Delete
+                        </a></td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="row justify-content-center flex-column">
+        <div class="col">
+            <nav th:with="url = @{__${@volumeController.VOLUME_TABLE_PATH}__}">
+                <ul class="pagination justify-content-center mb-0">
+                    <li class="page-item"
+                        th:classappend="${volumePage.hasPrevious()} == false ? |disabled|">
+                        <a class="page-link btn rounded-start rounded-end-0" id="volPreviousPage"
+                           th:link="@{__${url}__(description=${descriptionQuery},
+                                          pageNumber=${volumePage.getNumber()} - 1,
+                                          pageSize=${volumePage.getSize()})}">
+                            Previous
+                        </a>
+                    </li>
+                    <li class="page-item"
+                        th:classappend="${volumePage.hasNext()} == false ? |disabled|">
+                        <a class="page-link btn rounded-start-0 rounded-end" id="volNextPage"
+                           th:link="@{__${url}__(description=${descriptionQuery},
+                                          pageNumber=${volumePage.getNumber()} + 1,
+                                          pageSize=${volumePage.getSize()})}">
+                            Next
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+        <div class="col d-flex justify-content-center">
+            <small th:text="|page | + ${volumePage.getNumber() + 1} + | of | +  ${volumePage.getTotalPages()}"></small>
+        </div>
+    </div>
+</th:block>
+
+
+
+
 
 </body>
 </html>

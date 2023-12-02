@@ -44,6 +44,9 @@ public class Volume {
     @Version
     private Integer version;
 
+    @Builder.Default
+    private boolean deleted = false;
+
     public void addProduct(Product product){
         this.products.add(product);
     }

@@ -30,7 +30,7 @@ public class ReceivingOrder {
     private String supplier;
 
     @NotNull
-    @OneToMany
+    @OneToMany(orphanRemoval = true)
     @Builder.Default
     private Set<OrderItem> items = new HashSet<>();
 

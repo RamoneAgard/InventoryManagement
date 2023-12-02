@@ -22,13 +22,13 @@
           <input class="form-control" id="filterDateTime" type="datetime-local" name="createdBefore">
         </div>
       </div>
-      <div class="col col-lg-auto">
+      <div class="col col-md-2 col-lg-auto">
         <div class="form-floating">
           <input class="form-control" id="filterContact" type="text" name="contact" th:placeholder="${contactLabel} + ' Name'">
           <label for="filterContact" th:text="${contactLabel}">Receiver</label>
         </div>
       </div>
-      <div class="col-3 col-lg-2">
+      <div class="col-3 col-md-2 col-lg-2">
         <div class="form-floating">
           <input class="form-control" id="perPage" name="pageSize" type="number" placeholder="20" value="20"
                  min="1" max="50">
@@ -80,7 +80,7 @@
             </td>
             <td sec:authorize="hasRole('ROLE_EDITOR')">
               <button class="orderUpdateBtn btn btn-outline-primary"
-                      th:link="@{__${updateURL}__(id=${order.id})}">
+                      th:link="@{__${updateUrl}__(id=${order.id})}">
                 Update</button>
             </td>
             <td sec:authorize="hasRole('ROLE_ADMIN')">

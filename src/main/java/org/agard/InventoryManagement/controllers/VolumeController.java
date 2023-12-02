@@ -5,16 +5,16 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.agard.InventoryManagement.Exceptions.NotFoundException;
+import org.agard.InventoryManagement.domain.Category;
 import org.agard.InventoryManagement.domain.Volume;
 import org.agard.InventoryManagement.service.VolumeService;
 import org.agard.InventoryManagement.util.ViewNames;
+import org.springframework.data.domain.Page;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
 
 @Controller
 @RequiredArgsConstructor
@@ -31,11 +31,13 @@ public class VolumeController {
 
 
     @PreAuthorize("hasRole('ROLE_EDITOR')")
-    @GetMapping(VOLUME_TABLE_PATH)
-    public String getVolumeTable(Model model){
+    @RequestMapping(value = VOLUME_TABLE_PATH, method = {RequestMethod.GET, RequestMethod.POST})
+    public String getVolumeTable(@RequestParam(required = false, name = "description") String descriptionQuery,
+                                 @RequestParam(defaultValue = "0") Integer pageNumber,
+                                 @RequestParam(required = false) Integer pageSize,
+                                 Model model){
 
-        model.addAttribute("volumes",
-                volumeService.getAllVolumes());
+        addPageToModel(descriptionQuery, pageNumber, pageSize, model);
 
         return ViewNames.VOLUME_TABLE_FRAGMENT;
     }
@@ -73,13 +75,27 @@ public class VolumeController {
 
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     @GetMapping(VOLUME_DELETE_PATH)
-    public String deleteVolumeById(@RequestParam Long id, Model model){
+    public String deleteVolumeById(@RequestParam Long id,
+                                   @RequestParam(required = false, name = "description") String descriptionQuery,
+                                   @RequestParam(defaultValue = "0") Integer pageNumber,
+                                   @RequestParam(required = false) Integer pageSize,
+                                   Model model){
 
         volumeService.deleteById(id);
-        model.addAttribute("volumes",
-                volumeService.getAllVolumes());
+        addPageToModel(descriptionQuery, pageNumber, pageSize, model);
 
         return ViewNames.VOLUME_TABLE_FRAGMENT;
+    }
+
+    private void addPageToModel(String description,
+                                Integer pageNumber,
+                                Integer pageSize,
+                                Model model){
+
+        Page<Volume> volumePage = volumeService.filterVolumePage(description, pageNumber, pageSize);
+
+        model.addAttribute("volumePage", volumePage);
+        model.addAttribute("descriptionQuery", description);
     }
 
 }

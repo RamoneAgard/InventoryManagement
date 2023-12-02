@@ -7,34 +7,77 @@
 </head>
 <body>
 
-<div th:fragment="categoryTable" class="col-md d-flex overflow-scroll rounded-4 px-0">
-    <table class="table table-responsive table-striped">
-        <thead class="table-dark">
-        <tr>
-            <th>ID</th>
-            <th>Name</th>
-            <th>Number of Products</th>
-            <th>Creation Date</th>
-            <th></th>
-            <th sec:authorize="hasRole('ROLE_ADMIN')"></th>
-        </tr>
-        </thead>
-        <tbody>
-        <tr th:each="cat : ${categories}" class="category-row">
-            <td th:text="${cat.id}">ID value</td>
-            <td th:text="${cat.name}">name value</td>
-            <td th:text="${cat.products.size()}">number of products</td>
-            <td th:text="${#temporals.format(cat.createdDate, 'dd-MM-yyyy, HH:mm')}">date created</td>
-            <td>
-                <a class="btn btn-outline-primary catUpdateBtn"
-                   th:link="@{/categories/update(id=${cat.id})}">Update</a></td>
-            <td sec:authorize="hasRole('ROLE_ADMIN')">
-                <a class="btn btn-outline-danger catDeleteBtn"
-                   th:link="@{/categories/delete(id=${cat.id})}">Delete</a></td>
-        </tr>
-        </tbody>
-    </table>
-</div>
+<th:block th:fragment="categoryTable">
+    <div class="row justify-content-center px-2">
+        <div class="col-md d-flex overflow-scroll rounded-4 px-0">
+            <table class="table table-responsive table-striped">
+                <thead class="table-dark">
+                <tr>
+                    <th>ID</th>
+                    <th>Name</th>
+                    <th>Number of Products</th>
+                    <th>Creation Date</th>
+                    <th></th>
+                    <th sec:authorize="hasRole('ROLE_ADMIN')"></th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="cat : ${categoryPage.getContent()}" class="category-row">
+                    <td th:text="${cat.id}">ID value</td>
+                    <td th:text="${cat.name}">name value</td>
+                    <td th:text="${cat.products.size()}">number of products</td>
+                    <td th:text="${#temporals.format(cat.createdDate, 'dd-MM-yyyy, HH:mm')}">date created</td>
+                    <td>
+                        <a class="btn btn-outline-primary catUpdateBtn"
+                           th:link="@{__${@categoryController.CATEGORY_UPDATE_PATH}__(id=${cat.id})}">
+                            Update
+                        </a></td>
+                    <td sec:authorize="hasRole('ROLE_ADMIN')">
+                        <a class="btn btn-outline-danger catDeleteBtn"
+                           th:link="@{__${@categoryController.CATEGORY_DELETE_PATH}__(
+                                                        id=${cat.id},
+                                                        name=${nameQuery},
+                                                        pageNumber=${categoryPage.getNumber()},
+                                                        pageSize=${categoryPage.getSize()}
+                                                        )}">
+                            Delete
+                        </a></td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="row justify-content-center flex-column">
+        <div class="col">
+            <nav th:with="url = @{__${@categoryController.CATEGORY_TABLE_PATH}__}">
+                <ul class="pagination justify-content-center mb-0">
+                    <li class="page-item"
+                        th:classappend="${categoryPage.hasPrevious()} == false ? |disabled|">
+                        <a class="page-link btn rounded-start rounded-end-0" id="catPreviousPage"
+                           th:link="@{__${url}__(name=${nameQuery},
+                                          pageNumber=${categoryPage.getNumber()} - 1,
+                                          pageSize=${categoryPage.getSize()})}">
+                            Previous
+                        </a>
+                    </li>
+                    <li class="page-item"
+                        th:classappend="${categoryPage.hasNext()} == false ? |disabled|">
+                        <a class="page-link btn rounded-start-0 rounded-end" id="catNextPage"
+                           th:link="@{__${url}__(name=${nameQuery},
+                                          pageNumber=${categoryPage.getNumber()} + 1,
+                                          pageSize=${categoryPage.getSize()})}">
+                            Next
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+        <div class="col d-flex justify-content-center">
+            <small th:text="|page | + ${categoryPage.getNumber() + 1} + | of | +  ${categoryPage.getTotalPages()}"></small>
+        </div>
+    </div>
+</th:block>
 
 </body>
 </html>

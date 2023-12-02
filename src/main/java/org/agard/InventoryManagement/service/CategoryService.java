@@ -2,6 +2,7 @@ package org.agard.InventoryManagement.service;
 
 import org.agard.InventoryManagement.domain.Category;
 import org.agard.InventoryManagement.domain.Product;
+import org.springframework.data.domain.Page;
 
 import java.util.List;
 import java.util.Set;
@@ -9,6 +10,8 @@ import java.util.Set;
 public interface CategoryService {
 
     List<Category> getAllCategories();
+
+    Page<Category> filterCategoryPage(String name, Integer pageNumber, Integer pageSize);
 
     Category getById(Long id);
 

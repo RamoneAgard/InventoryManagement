@@ -39,6 +39,9 @@ public class Category {
     @Version
     private Integer version;
 
+    @Builder.Default
+    private boolean deleted = false;
+
     public void addProduct(Product product){
         //System.out.println("adding product");
         this.products.add(product);

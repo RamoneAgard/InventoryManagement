@@ -35,6 +35,8 @@ public class ProductController {
 
     public static final String PRODUCT_TABLE_PATH = "/products/table";
 
+    public static final String PRODUCT_REACTIVATE_PATH = "/products/reactivate";
+
     private final ProductService productService;
 
     private final CategoryService categoryService;
@@ -62,7 +64,13 @@ public class ProductController {
                                   @RequestParam(defaultValue = "0") Integer pageNumber,
                                   @RequestParam(required = false) Integer pageSize,
                                   @RequestParam(required = false) String orderType,
+                                  @RequestParam(required = false, name = "deleted") Boolean deleted,
                                   Model model){
+
+        if(deleted != null && deleted){
+            addDeletedPageToModel(nameQuery, categoriesQuery, volumesQuery, pageNumber, pageSize, model);
+            return ViewNames.PRODUCT_TABLE_FRAGMENT;
+        }
 
         addPageToModel(nameQuery, categoriesQuery, volumesQuery, pageNumber, pageSize, model);
 
@@ -139,6 +147,21 @@ public class ProductController {
         return ViewNames.PRODUCT_TABLE_FRAGMENT;
     }
 
+    @GetMapping(PRODUCT_REACTIVATE_PATH)
+    public String reactivateProductById(@RequestParam Long id,
+                                        @RequestParam(required = false) String name,
+                                        @RequestParam(required = false, name = "category") List<Long> categories,
+                                        @RequestParam(required = false, name = "volume") List<Long> volumes,
+                                        @RequestParam(defaultValue = "0") Integer pageNumber,
+                                        @RequestParam(required = false) Integer pageSize,
+                                        Model model){
+
+        productService.activateById(id);
+        addDeletedPageToModel(name, categories, volumes, pageNumber, pageSize, model);
+
+        return ViewNames.PRODUCT_TABLE_FRAGMENT;
+    }
+
 
     private void addPageToModel(String name,
                                 List<Long> categories,
@@ -153,6 +176,24 @@ public class ProductController {
         model.addAttribute("nameQuery", name);
         model.addAttribute("categoriesQuery", categories);
         model.addAttribute("volumesQuery", volumes);
+    }
+
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    private void addDeletedPageToModel(String name,
+                                       List<Long> categories,
+                                       List<Long> volumes,
+                                       Integer pageNumber,
+                                       Integer pageSize,
+                                       Model model){
+
+        Page<Product> productPage = productService.filterDeletedProductsPage(name, categories, volumes, pageNumber, pageSize);
+
+        model.addAttribute("productPage", productPage);
+        model.addAttribute("nameQuery", name);
+        model.addAttribute("categoriesQuery", categories);
+        model.addAttribute("volumesQuery", volumes);
+        model.addAttribute("deletedQuery", "true");
+
     }
 
 

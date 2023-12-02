@@ -1,9 +1,9 @@
 const orderFormDiv = document.getElementById("orderFormDiv");
 const orderTableDiv = document.getElementById("orderTableContainer");
-const orderFilterForm = document.getElementById("orderFilter")
+const orderFilterForm = document.getElementById("orderFilter");
 
 const productTableDiv = document.getElementById("productTableContainer");
-const productFilterForm = document.getElementById("productFilter")
+const productFilterForm = document.getElementById("productFilter");
 
 const addFormElId = "itemAddForm";
 const addFormQueryName = "code";
@@ -53,7 +53,7 @@ if(orderFormDiv != null){
 var orderPageObserver;
 if(orderTableDiv != null){
 
-    document.addEventListener("DOMContentLoaded", function(event){
+    document.addEventListener("DOMContentLoaded", function(){
         let initUrl = "";
         if(orderFilterForm != null){
             initUrl = orderFilterForm.getAttribute("action");
@@ -62,7 +62,6 @@ if(orderTableDiv != null){
                 getDataFilterData(orderFilterForm, orderTableDiv);
             });
         }
-
         getInitialTable(initUrl, orderTableDiv);
     });
 

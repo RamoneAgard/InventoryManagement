@@ -13,6 +13,8 @@ public interface ProductService {
 
     Page<Product> filterProductPage(String name, List<Long> categories, List<Long> volumes, Integer pageNumber, Integer pageSize);
 
+    Page<Product> filterDeletedProductsPage(String name, List<Long> categories, List<Long> volumes, Integer pageNumber, Integer pageSize);
+
     void saveProduct(ProductForm formToSave);
 
     Product saveProduct(Product product);
@@ -24,6 +26,8 @@ public interface ProductService {
     Product getById(Long id);
 
     void deleteById(Long id);
+
+    void activateById(Long id);
 
 
 

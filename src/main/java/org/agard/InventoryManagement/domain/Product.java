@@ -70,8 +70,11 @@ public class Product {
     @Version
     private Integer version;
 
+    @Builder.Default
+    private boolean deleted = false;
 
-    public Product(Long id, String upc, String itemCode, String name, Category category, BigDecimal price, BigDecimal cost, Integer unitSize, Volume volume, Integer stock, LocalDateTime createdDate, LocalDateTime lastModifiedDate, Integer version) {
+
+    public Product(Long id, String upc, String itemCode, String name, Category category, BigDecimal price, BigDecimal cost, Integer unitSize, Volume volume, Integer stock, LocalDateTime createdDate, LocalDateTime lastModifiedDate, Integer version, boolean deleted) {
         this.id = id;
         this.upc = upc;
         this.itemCode = itemCode;
@@ -85,6 +88,7 @@ public class Product {
         this.createdDate = createdDate;
         this.lastModifiedDate = lastModifiedDate;
         this.version = version;
+        this.deleted = deleted;
     }
 
     public void setCategory(Category category){

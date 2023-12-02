@@ -7,12 +7,21 @@
 </head>
 <body>
     <th:block th:fragment="filterForm(categories, volumes, type)">
-        <form class="form"  id="productFilter"
+        <form class="form" id="productFilter"
               th:action="@{__${@productController.PRODUCT_TABLE_PATH}__(orderType=${type})}"
               method="post">
+            <div sec:authorize="hasRole('ROLE_ADMIN')"
+                 th:if="${type} == 'product'"
+                 class="row justify-content-center">
+                <div class="col-auto">
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" value="true" name="deleted" id="filterDeleted">
+                        <label class="form-check-label" for="filterDeleted"> Filter Deleted </label>
+                    </div>
+                </div>
+            </div>
             <div class="row g-3 justify-content-center">
-
-                <div class="col-md-6 col-lg-auto">
+                <div class="col-md-6 col-lg-auto ">
                     <div class="input-group">
                     <span class="input-group-text p-1">
                         Categories
@@ -73,7 +82,7 @@
                             <th></th>
                         </th:block>
                         <th:block th:unless="${orderType}">
-                            <th sec:authorize="hasRole('ROLE_EDITOR')"></th>
+                            <th th:unless="${deletedQuery} == 'true'" sec:authorize="hasRole('ROLE_EDITOR')"></th>
                             <th sec:authorize="hasRole('ROLE_ADMIN')"></th>
                         </th:block>
                     </tr>
@@ -105,12 +114,13 @@
                             </td>
                         </th:block>
                         <th:block th:unless="${orderType}">
-                            <td sec:authorize="hasRole('ROLE_EDITOR')">
+                            <td th:unless="${prod.deleted}" sec:authorize="hasRole('ROLE_EDITOR')">
                                 <a class="updateBtn btn btn-outline-primary"
                                    th:link="@{__${@productController.PRODUCT_UPDATE_PATH}__(id=${prod.id})}">
                                     Update</a></td>
                             <td sec:authorize="hasRole('ROLE_ADMIN')">
-                                <a class="deleteBtn btn btn-outline-danger"
+                                <a th:unless="${prod.deleted}"
+                                   class="deleteBtn btn btn-outline-danger"
                                    th:link="@{__${@productController.PRODUCT_DELETE_PATH}__(
                                                                         id=${prod.id},
                                                                         name=${nameQuery},
@@ -118,7 +128,18 @@
                                                                         volume=${volumesQuery},
                                                                         pageNumber=${productPage.getNumber()},
                                                                         pageSize=${productPage.getSize()})}">
-                                    Delete</a></td>
+                                    Delete</a>
+                                <a th:if="${prod.deleted}"
+                                   class="activateBtn btn btn-outline-warning"
+                                   th:link="@{__${@productController.PRODUCT_REACTIVATE_PATH}__(
+                                                                        id=${prod.id},
+                                                                        name=${nameQuery},
+                                                                        category=${categoriesQuery},
+                                                                        volume=${volumesQuery},
+                                                                        pageNumber=${productPage.getNumber()},
+                                                                        pageSize=${productPage.getSize()})}">
+                                    Activate</a>
+                            </td>
                         </th:block>
 
                     </tr>
@@ -140,7 +161,8 @@
                                 volume=${volumesQuery},
                                 pageNumber=${productPage.getNumber()} - 1,
                                 pageSize=${productPage.getSize()},
-                                orderType=${orderType}
+                                orderType=${orderType},
+                                deleted=${deletedQuery}
                                 )}">
                                 Previous
                             </a>
@@ -154,7 +176,8 @@
                                 volume=${volumesQuery},
                                 pageNumber=${productPage.getNumber()} + 1,
                                 pageSize=${productPage.getSize()},
-                                orderType=${orderType}
+                                orderType=${orderType},
+                                deleted=${deletedQuery}
                                 )}">
                                 Next
                             </a>

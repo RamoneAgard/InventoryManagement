@@ -50,73 +50,78 @@
                 <div class="row justify-content-center">
                     <div class="col-auto">
                         <div class="input-group mb-2">
-              <span class="input-group-text">
-                Supplier
-              </span>
+                            <span class="input-group-text">
+                                Supplier
+                            </span>
                             <input class="form-control" type="text" th:field="*{supplier}" placeholder="Supplying Company" maxlength="250" required>
                         </div>
                     </div>
                 </div>
 
-                <div class="row">
+                <div class="row justify-content-center">
+                    <div class="col-auto">
+                        <div th:if="${receivingOrderForm.items.size()} > 0" class="table-responsive overflow-scroll rounded-2 px-0">
+                            <table class="table text-center">
+                                <thead class="table-dark">
+                                <tr>
+                                    <th>#</th>
+                                    <th>Item Code</th>
+                                    <th>Name</th>
+                                    <th>Volume</th>
+                                    <th>Unit Size</th>
+                                    <th>Quantity</th>
+                                    <th>Cost($USD)</th>
+                                    <th></th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                <tr th:each="item, itemStat : *{items}">
+                                    <td>
+                                        <p th:text="${itemStat.count}"> 1 </p>
+                                        <input class="form-control-plaintext" type="text" th:field="*{items[__${itemStat.index}__].product.id}" required hidden>
+                                    </td>
+                                    <td>
+                                        <p th:text="${item.product.itemCode}">code</p>
+                                        <input class="form-control-plaintext" type="text" th:field="*{items[__${itemStat.index}__].product.itemCode}" readonly required hidden>
+                                    </td>
+                                    <td>
+                                        <p th:text="${item.product.name}">name</p>
+                                        <input class="form-control-plaintext" type="text" th:field="*{items[__${itemStat.index}__].product.name}" readonly required hidden>
+                                    </td>
+                                    <td>
+                                        <p th:text="${item.product.volumeDescription}">vol description</p>
+                                        <input class="form-control-plaintext" type="text" th:field="*{items[__${itemStat.index}__].product.volumeDescription}" readonly required hidden>
+                                    </td>
+                                    <td>
+                                        <p th:text="${item.product.unitSize}">unit size</p>
+                                        <input class="form-control-plaintext" type="text" th:field="*{items[__${itemStat.index}__].product.unitSize}" readonly required hidden>
+                                    </td>
+                                    <td>
+                                        <input class="form-control" type="number" th:field="*{items[__${itemStat.index}__].quantity}"
+                                               min="1" placeholder="10" required>
+                                    </td>
+                                    <td>
+                                        <input class="form-control" type="number" th:field="*{items[__${itemStat.index}__].price}"
+                                               min="0" step="0.01" placeholder="Cost $USD" required>
+                                    </td>
+                                    <td>
+                                        <button class="btn btn-primary text-nowrap formRemoveBtn"
+                                                th:link="@{__${@receivingOrderController.ORDER_REMOVE_FORM_ITEM}__(index=${itemStat.index})}">
+                                            Delete Item</button>
+                                    </td>
+                                </tr>
+                                </tbody>
 
+                            </table>
+                        </div>
+                    </div>
                 </div>
-                <div th:if="${receivingOrderForm.items.size()} > 0" class="table-responsive overflow-scroll rounded-2 px-0">
-                    <table class="table text-center">
-                        <thead class="table-dark">
-                        <tr>
-                            <th>#</th>
-                            <th>Item Code</th>
-                            <th>Name</th>
-                            <th>Volume</th>
-                            <th>Unit Size</th>
-                            <th>Quantity</th>
-                            <th>Cost($USD)</th>
-                            <th></th>
-                        </tr>
-                        </thead>
-                        <tbody>
-                        <tr th:each="item, itemStat : *{items}">
-                            <td>
-                                <p th:text="${itemStat.count}"> 1 </p>
-                                <input class="form-control-plaintext" type="text" th:field="*{items[__${itemStat.index}__].product.id}" required hidden>
-                            </td>
-                            <td>
-                                <p th:text="${item.product.itemCode}">code</p>
-                                <input class="form-control-plaintext" type="text" th:field="*{items[__${itemStat.index}__].product.itemCode}" readonly required hidden>
-                            </td>
-                            <td>
-                                <p th:text="${item.product.name}">name</p>
-                                <input class="form-control-plaintext" type="text" th:field="*{items[__${itemStat.index}__].product.name}" readonly required hidden>
-                            </td>
-                            <td>
-                                <p th:text="${item.product.volumeDescription}">vol description</p>
-                                <input class="form-control-plaintext" type="text" th:field="*{items[__${itemStat.index}__].product.volumeDescription}" readonly required hidden>
-                            </td>
-                            <td>
-                                <p th:text="${item.product.unitSize}">unit size</p>
-                                <input class="form-control-plaintext" type="text" th:field="*{items[__${itemStat.index}__].product.unitSize}" readonly required hidden>
-                            </td>
-                            <td>
-                                <input class="form-control" type="number" th:field="*{items[__${itemStat.index}__].quantity}"
-                                       min="1" placeholder="10" required>
-                            </td>
-                            <td>
-                                <input class="form-control" type="number" th:field="*{items[__${itemStat.index}__].price}"
-                                       min="0" step="0.01" placeholder="Cost $USD" required>
-                            </td>
-                            <td>
-                                <button class="btn btn-primary text-nowrap formRemoveBtn"
-                                        th:link="@{__${@receivingOrderController.ORDER_REMOVE_FORM_ITEM}__(index=${itemStat.index})}">
-                                    Delete Item</button>
-                            </td>
-                        </tr>
-                        </tbody>
 
-                    </table>
+                <div class="row justify-content-center">
+                    <div class="col-auto">
+                        <button class="btn btn-primary" type="submit">Submit</button>
+                    </div>
                 </div>
-
-                <button class="btn btn-primary" type="submit">Submit</button>
             </form>
         </div>
 

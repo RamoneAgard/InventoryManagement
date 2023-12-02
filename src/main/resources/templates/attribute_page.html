@@ -44,7 +44,13 @@
           <th:block th:replace="~{fragments/attributes/category_update_form.html :: updateForm}"></th:block>
         </div>
 
-        <div class="row justify-content-center px-2" id="categoryTableContainer">
+        <div class="row justify-content-center mb-2">
+          <div class="col">
+            <th:block th:replace="~{fragments/attributes/page_filter_form.html :: filterForm('cat')}"></th:block>
+          </div>
+        </div>
+
+        <div class="row justify-content-center" id="categoryTableContainer">
 
         </div>
       </div>
@@ -63,7 +69,13 @@
           <th:block th:replace="~{fragments/attributes/volume_update_form.html :: updateForm}"></th:block>
         </div>
 
-        <div class="row justify-content-center px-2" id="volumeTableContainer">
+        <div class="row justify-content-center mb-2">
+          <div class="col">
+            <th:block th:replace="~{fragments/attributes/page_filter_form.html :: filterForm('vol')}"></th:block>
+          </div>
+        </div>
+
+        <div class="row justify-content-center" id="volumeTableContainer">
 
         </div>
 
@@ -71,8 +83,8 @@
 
     </div>
 
-
   </div>
+
   <th:block th:replace="~{fragments/commonHead.html :: commonScripts}"></th:block>
   <script th:src="@{/scripts/requestDataUtils.js}"></script>
   <script th:src="@{/scripts/attributeUpdateMain.js}"></script>

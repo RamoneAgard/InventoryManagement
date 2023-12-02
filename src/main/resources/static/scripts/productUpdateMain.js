@@ -52,6 +52,7 @@ if(tableDiv != null){
             setListenerForDataUpdates(mutations, formDiv, "updateBtn");
         }
         setListenerForDataDelete(mutations, tableDiv, "deleteBtn");
+        setListenerForDataDelete(mutations, tableDiv, "activateBtn");
     });
     const tableObserverConfig = {
             subtree : true,

@@ -9,14 +9,13 @@ import org.agard.InventoryManagement.domain.Volume;
 import org.agard.InventoryManagement.service.CategoryService;
 import org.agard.InventoryManagement.service.VolumeService;
 import org.agard.InventoryManagement.util.ViewNames;
+import org.springframework.data.domain.Page;
 import org.springframework.security.access.annotation.Secured;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -43,11 +42,13 @@ public class CategoryController {
     }
 
 
-    @GetMapping(CATEGORY_TABLE_PATH)
-    public String getCategoryTable(Model model){
+    @RequestMapping(value = CATEGORY_TABLE_PATH, method = {RequestMethod.GET, RequestMethod.POST})
+    public String getCategoryTable(@RequestParam(required = false, name = "name") String nameQuery,
+                                   @RequestParam(defaultValue = "0") Integer pageNumber,
+                                   @RequestParam(required = false) Integer pageSize,
+                                   Model model){
 
-        model.addAttribute("categories",
-                categoryService.getAllCategories());
+        addPageToModel(nameQuery, pageNumber, pageSize, model);
 
         return ViewNames.CATEGORY_TABLE_FRAGMENT;
     }
@@ -83,14 +84,27 @@ public class CategoryController {
 
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     @GetMapping(CATEGORY_DELETE_PATH)
-    public String deleteCategoryById(@RequestParam Long id, Model model){
+    public String deleteCategoryById(@RequestParam Long id,
+                                     @RequestParam(required = false, name = "name") String nameQuery,
+                                     @RequestParam(defaultValue = "0") Integer pageNumber,
+                                     @RequestParam(required = false) Integer pageSize,
+                                     Model model){
 
         categoryService.deleteById(id);
-        model.addAttribute("categories",
-                categoryService.getAllCategories());
+        addPageToModel(nameQuery, pageNumber, pageSize, model);
 
         return ViewNames.CATEGORY_TABLE_FRAGMENT;
+    }
 
+    private void addPageToModel(String name,
+                                Integer pageNumber,
+                                Integer pageSize,
+                                Model model){
+
+        Page<Category> categoryPage = categoryService.filterCategoryPage(name, pageNumber, pageSize);
+
+        model.addAttribute("categoryPage", categoryPage);
+        model.addAttribute("nameQuery", name);
     }
 
 }

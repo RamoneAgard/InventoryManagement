@@ -87,6 +87,24 @@ public class ProductServiceImpl implements ProductService {
         return productRepository.findAllWithFilters(name, categories, volumes, pageRequest);
     }
 
+    @Override
+    public Page<Product> filterDeletedProductsPage(String name, List<Long> categories, List<Long> volumes, Integer pageNumber, Integer pageSize) {
+
+        PageRequest pageRequest = buildPageRequest(pageNumber, pageSize);
+
+        if(!StringUtils.hasText(name)){
+            name = null;
+        }
+        if(categories != null && categories.size() == 0){
+            categories = null;
+        }
+        if(volumes != null && volumes.size() == 0){
+            volumes = null;
+        }
+
+        return productRepository.findAllDeletedWithFilters(name, categories, volumes, pageRequest);
+    }
+
 
     /**
      * @param formToSave the Product to save to database, new or existing
@@ -131,7 +149,7 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     public ItemProduct getItemProductByCode(String itemCode) {
-        Product product = productRepository.findByItemCodeEqualsIgnoreCase(itemCode);
+        Product product = productRepository.findByItemCodeEqualsIgnoreCaseAndDeletedFalse(itemCode);
         if(product == null){
             throw new NotFoundException("Product not found for Item Code: " + itemCode);
         }
@@ -140,7 +158,7 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     public Product getById(Long id) {
-        return productRepository.findById(id)
+        return productRepository.findByIdAndDeletedFalse(id)
                 .orElseThrow(() -> {
                     throw new NotFoundException("Product not found for ID: " + id);
                         });
@@ -153,7 +171,16 @@ public class ProductServiceImpl implements ProductService {
     @Override
     public void deleteById(Long id) {
         if(productRepository.existsById(id)){
-            productRepository.deleteById(id);
+            productRepository.softDeleteById(id);
+            return;
+        }
+        throw new NotFoundException("Product not found for ID: " + id);
+    }
+
+    @Override
+    public void activateById(Long id) {
+        if(productRepository.existsById(id)){
+            productRepository.reactiveById(id);
             return;
         }
         throw new NotFoundException("Product not found for ID: " + id);
