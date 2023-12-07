@@ -78,7 +78,8 @@
                 <tr th:each="item, itemStat : *{items}">
                   <td>
                     <p th:text="${itemStat.count}"> 1 </p>
-                    <input class="form-control-plaintext" type="text" th:field="*{items[__${itemStat.index}__].product.id}" required hidden>
+                    <input class="form-control-plaintext" type="text" th:field="*{items[__${itemStat.index}__].id}" required readonly hidden>
+                    <input class="form-control-plaintext" type="text" th:field="*{items[__${itemStat.index}__].product.id}" required readonly hidden>
                   </td>
                   <td>
                     <p th:text="${item.product.itemCode}">code</p>

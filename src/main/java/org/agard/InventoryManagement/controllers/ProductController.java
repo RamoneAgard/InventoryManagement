@@ -63,14 +63,8 @@ public class ProductController {
                                   @RequestParam(required = false, name = "volume") List<Long> volumesQuery,
                                   @RequestParam(defaultValue = "0") Integer pageNumber,
                                   @RequestParam(required = false) Integer pageSize,
-                                  @RequestParam(required = false) String orderType,
-                                  @RequestParam(required = false, name = "deleted") Boolean deleted,
+                                  @RequestParam(defaultValue = "product") String orderType,
                                   Model model){
-
-        if(deleted != null && deleted){
-            addDeletedPageToModel(nameQuery, categoriesQuery, volumesQuery, pageNumber, pageSize, model);
-            return ViewNames.PRODUCT_TABLE_FRAGMENT;
-        }
 
         addPageToModel(nameQuery, categoriesQuery, volumesQuery, pageNumber, pageSize, model);
 
@@ -85,6 +79,26 @@ public class ProductController {
     }
 
 
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @RequestMapping(value = PRODUCT_TABLE_PATH, params = "deleted", method = {RequestMethod.GET, RequestMethod.POST})
+    public String getDeletedProductTable(@RequestParam(required = false, name = "name") String nameQuery,
+                                  @RequestParam(required = false, name = "category") List<Long> categoriesQuery,
+                                  @RequestParam(required = false, name = "volume") List<Long> volumesQuery,
+                                  @RequestParam(defaultValue = "0") Integer pageNumber,
+                                  @RequestParam(required = false) Integer pageSize,
+                                  @RequestParam(defaultValue = "false" ,name = "deleted") Boolean deleted,
+                                  Model model){
+
+        if(deleted){
+            addDeletedPageToModel(nameQuery, categoriesQuery, volumesQuery, pageNumber, pageSize, model);
+            return ViewNames.PRODUCT_TABLE_FRAGMENT;
+        }
+        addPageToModel(nameQuery, categoriesQuery, volumesQuery, pageNumber, pageSize, model);
+
+        return ViewNames.PRODUCT_TABLE_FRAGMENT;
+    }
+
+
     @PreAuthorize("hasRole('ROLE_EDITOR')")
     @GetMapping(PRODUCT_UPDATE_PATH)
     public String getUpdateForm(Model model,
@@ -94,7 +108,13 @@ public class ProductController {
             productForm = new ProductForm();
         }
         else {
-            productForm = productService.getFormById(id);
+            try{
+                productForm = productService.getFormById(id);
+            }
+            catch (NotFoundException e){
+                model.addAttribute("addError", e.getMessage());
+                productForm = new ProductForm();
+            }
         }
 
         List<Category> categoryList = categoryService.getAllCategories();
@@ -116,9 +136,19 @@ public class ProductController {
                                         Model model){
 
         if(!bindingResult.hasErrors()){
-            productService.saveProduct(productForm);
-            response.setStatus(201);
-            model.addAttribute("productForm", new ProductForm());
+            try{
+                productService.saveProduct(productForm);
+                response.setStatus(201);
+                model.addAttribute("productForm", new ProductForm());
+            }
+            catch (NotFoundException e){
+                model.addAttribute("addError", e.getMessage());
+            }
+        }
+        else{
+            model.addAttribute("addError",
+                    bindingResult.getAllErrors().get(0).getDefaultMessage()
+            );
         }
 
         List<Category> categoryList = categoryService.getAllCategories();
@@ -141,12 +171,19 @@ public class ProductController {
                                     @RequestParam(required = false) Integer pageSize,
                                     Model model){
 
-        productService.deleteById(id);
+        try{
+            productService.deleteById(id);
+        }
+        catch (NotFoundException e){
+            model.addAttribute("tableError", e.getMessage());
+        }
+
         addPageToModel(name, categories, volumes, pageNumber, pageSize, model);
 
         return ViewNames.PRODUCT_TABLE_FRAGMENT;
     }
 
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
     @GetMapping(PRODUCT_REACTIVATE_PATH)
     public String reactivateProductById(@RequestParam Long id,
                                         @RequestParam(required = false) String name,
@@ -156,7 +193,13 @@ public class ProductController {
                                         @RequestParam(required = false) Integer pageSize,
                                         Model model){
 
-        productService.activateById(id);
+        try{
+            productService.activateById(id);
+        }
+        catch (NotFoundException e){
+            model.addAttribute("tableError", e.getMessage());
+        }
+
         addDeletedPageToModel(name, categories, volumes, pageNumber, pageSize, model);
 
         return ViewNames.PRODUCT_TABLE_FRAGMENT;
@@ -178,7 +221,7 @@ public class ProductController {
         model.addAttribute("volumesQuery", volumes);
     }
 
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
+
     private void addDeletedPageToModel(String name,
                                        List<Long> categories,
                                        List<Long> volumes,

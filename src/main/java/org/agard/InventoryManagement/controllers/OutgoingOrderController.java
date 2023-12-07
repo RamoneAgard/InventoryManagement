@@ -1,5 +1,6 @@
 package org.agard.InventoryManagement.controllers;
 
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.agard.InventoryManagement.Exceptions.NotFoundException;
@@ -52,7 +53,6 @@ public class OutgoingOrderController {
     public String getOutOrdersPage(Model model){
 
         model.addAttribute("outgoingOrderForm", new OutgoingOrderForm());
-        model.addAttribute("orders", orderService.filterOrderPage(null, null, null, null));
         model.addAttribute("categories", categoryService.getAllCategories());
         model.addAttribute("volumes", volumeService.getAllVolumes());
 
@@ -67,7 +67,13 @@ public class OutgoingOrderController {
             orderForm = new OutgoingOrderForm();
         }
         else {
-            orderForm = orderService.getFormById(id);
+            try{
+                orderForm = orderService.getFormById(id);
+            }
+            catch (NotFoundException e){
+                model.addAttribute("addError", e.getMessage());
+                orderForm = new OutgoingOrderForm();
+            }
         }
         model.addAttribute("outgoingOrderForm", orderForm);
 
@@ -101,8 +107,12 @@ public class OutgoingOrderController {
     public String removeItemFromForm(OutgoingOrderForm orderForm,
                                      @RequestParam(name = "index") Integer index,
                                      Model model){
-
-        orderForm.getItems().remove(index.intValue());
+        try{
+            orderForm.getItems().remove(index.intValue());
+        }
+        catch (IndexOutOfBoundsException e){
+            model.addAttribute("addError", "Remove index is out of bounds");
+        }
         model.addAttribute("outgoingOrderFrom", orderForm);
 
         return ViewNames.OUTGOING_ORDER_FORM_FRAGMENT;
@@ -111,6 +121,7 @@ public class OutgoingOrderController {
     @PostMapping(ORDER_UPDATE_PATH)
     public String processCreateOrUpdate(@Valid OutgoingOrderForm orderForm,
                                         BindingResult bindingResult,
+                                        HttpServletResponse response,
                                         Model model){
         System.out.println(orderForm);
         if(orderForm.getItems().size() < 1){
@@ -120,17 +131,16 @@ public class OutgoingOrderController {
             try{
                 orderService.saveOrder(orderForm);
                 model.addAttribute("outgoingOrderForm", new OutgoingOrderForm());
+                response.setStatus(201);
             }
-            catch (StockException e){
+            catch (StockException | NotFoundException e){
                 model.addAttribute("addError", e.getMessage());
             }
         }
         else{
-            if(bindingResult.hasFieldErrors("receiver")){
-                model.addAttribute("addError",
-                        bindingResult.getFieldError("receiver").toString()
-                );
-            }
+            model.addAttribute("addError",
+                    bindingResult.getAllErrors().get(0).getDefaultMessage()
+            );
         }
         return ViewNames.OUTGOING_ORDER_FORM_FRAGMENT;
     }
@@ -146,6 +156,7 @@ public class OutgoingOrderController {
         return ViewNames.OUTGOING_ORDER_TABLE_FRAGMENT;
     }
 
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
     @GetMapping(ORDER_DELETE_PATH)
     public String deleteOrderById(@RequestParam Long id,
                                   @RequestParam(required = false, name = "contact") String receiverQuery,
@@ -154,7 +165,13 @@ public class OutgoingOrderController {
                                   @RequestParam(required = false) Integer pageSize,
                                   Model model){
 
-        orderService.deleteById(id);
+        try{
+            orderService.deleteById(id);
+        }
+        catch (StockException | NotFoundException e){
+            model.addAttribute("tableError", e.getMessage());
+        }
+
         addPageToModel(receiverQuery, createdBeforeQuery, pageNumber, pageSize, model);
 
         return ViewNames.OUTGOING_ORDER_TABLE_FRAGMENT;

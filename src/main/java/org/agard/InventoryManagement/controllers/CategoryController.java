@@ -28,6 +28,7 @@ public class CategoryController {
     public static final String CATEGORY_TABLE_PATH = "/categories/table";
     public static final String CATEGORY_UPDATE_PATH = "/categories/update";
     public static final String CATEGORY_DELETE_PATH = "/categories/delete";
+    public static final String CATEGORY_REACTIVATE_PATH = "/categories/reactivate";
 
     private final CategoryService categoryService;
 
@@ -54,6 +55,25 @@ public class CategoryController {
     }
 
 
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @RequestMapping(value = CATEGORY_TABLE_PATH, params = "deleted", method = {RequestMethod.GET, RequestMethod.POST})
+    public String getDeletedCategoryTable(@RequestParam(required = false, name = "name") String nameQuery,
+                                   @RequestParam(defaultValue = "0") Integer pageNumber,
+                                   @RequestParam(required = false) Integer pageSize,
+                                   @RequestParam(name = "deleted") Boolean deleted,
+                                   Model model){
+
+        if(deleted){
+            addDeletedPageToModel(nameQuery, pageNumber, pageSize, model);
+            return ViewNames.CATEGORY_TABLE_FRAGMENT;
+        }
+
+        addPageToModel(nameQuery, pageNumber, pageSize, model);
+
+        return ViewNames.CATEGORY_TABLE_FRAGMENT;
+    }
+
+
     @GetMapping(CATEGORY_UPDATE_PATH)
     public String getCategoryUpdate(@RequestParam(required = false) Long id,
                                     Model model){
@@ -61,7 +81,13 @@ public class CategoryController {
         if(id == null){
             category = new Category();
         } else {
-            category = categoryService.getById(id);
+            try {
+                category = categoryService.getById(id);
+            }
+            catch (NotFoundException e){
+                model.addAttribute("addError", e.getMessage());
+                category = new Category();
+            }
         }
         model.addAttribute("category", category);
 
@@ -74,9 +100,19 @@ public class CategoryController {
                                         HttpServletResponse response,
                                         Model model){
         if(!bindingResult.hasErrors()){
-            categoryService.saveCategory(category);
-            response.setStatus(201);
-            model.addAttribute("category", new Category());
+            try{
+                categoryService.saveCategory(category);
+                response.setStatus(201);
+                model.addAttribute("category", new Category());
+            }
+            catch (NotFoundException e){
+                model.addAttribute("addError", e.getMessage());
+            }
+        }
+        else {
+            model.addAttribute("addError",
+                    bindingResult.getAllErrors().get(0).getDefaultMessage()
+            );
         }
 
         return ViewNames.CATEGORY_UPDATE_FRAGMENT;
@@ -90,11 +126,38 @@ public class CategoryController {
                                      @RequestParam(required = false) Integer pageSize,
                                      Model model){
 
-        categoryService.deleteById(id);
+        try{
+            categoryService.deleteById(id);
+        }
+        catch (NotFoundException e){
+            model.addAttribute("tableError", e.getMessage());
+        }
+
         addPageToModel(nameQuery, pageNumber, pageSize, model);
 
         return ViewNames.CATEGORY_TABLE_FRAGMENT;
     }
+
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @GetMapping(CATEGORY_REACTIVATE_PATH)
+    public String reactivateCategoryById(@RequestParam Long id,
+                                        @RequestParam(required = false, name = "name") String nameQuery,
+                                        @RequestParam(defaultValue = "0") Integer pageNumber,
+                                        @RequestParam(required = false) Integer pageSize,
+                                        Model model){
+
+        try{
+            categoryService.activateById(id);
+        }
+        catch (NotFoundException e){
+            model.addAttribute("tableError", e.getMessage());
+        }
+
+        addDeletedPageToModel(nameQuery, pageNumber, pageSize, model);
+
+        return ViewNames.CATEGORY_TABLE_FRAGMENT;
+    }
+
 
     private void addPageToModel(String name,
                                 Integer pageNumber,
@@ -105,6 +168,18 @@ public class CategoryController {
 
         model.addAttribute("categoryPage", categoryPage);
         model.addAttribute("nameQuery", name);
+    }
+
+    private void addDeletedPageToModel(String name,
+                                       Integer pageNumber,
+                                       Integer pageSize,
+                                       Model model){
+
+        Page<Category> categoryPage = categoryService.filterDeletedCategoryPage(name, pageNumber, pageSize);
+
+        model.addAttribute("categoryPage", categoryPage);
+        model.addAttribute("nameQuery", name);
+        model.addAttribute("deletedQuery", "true");
     }
 
 }

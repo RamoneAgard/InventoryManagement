@@ -13,6 +13,8 @@ public interface CategoryService {
 
     Page<Category> filterCategoryPage(String name, Integer pageNumber, Integer pageSize);
 
+    Page<Category> filterDeletedCategoryPage(String name, Integer pageNumber, Integer pageSize);
+
     Category getById(Long id);
 
     Set<Product> getProductsForCategory(Category category);
@@ -20,4 +22,6 @@ public interface CategoryService {
     void saveCategory(Category category);
 
     void deleteById(Long id);
+
+    void activateById(Long id);
 }

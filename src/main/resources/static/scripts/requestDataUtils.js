@@ -40,13 +40,16 @@ function setListenerForClearUpdate(mutations, container, btnId){
 
 function setFormEvent(resultContainer, tableUpdateFunction, formId){
     const dataForm = document.getElementById(formId);
+    console.log("in set event listener")
     dataForm.addEventListener("submit", function(event){
         event.preventDefault();
+        console.log("in event listener")
         submitDataForm(dataForm, resultContainer, tableUpdateFunction);
-    })
+    });
 }
 
 function submitDataForm(form, resultContainer, tableUpdateFunction){
+    console.log("in submit form function")
     const url = form.getAttribute("action");
     const formData = new FormData(form);
     const callback = (response) => {

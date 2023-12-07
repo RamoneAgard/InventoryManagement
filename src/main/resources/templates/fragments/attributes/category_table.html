@@ -8,6 +8,15 @@
 <body>
 
 <th:block th:fragment="categoryTable">
+
+    <div th:if="${tableError}" class="row justify-content-center">
+        <div class="col-auto">
+            <div class="alert alert-danger" role="alert" id="tableErrorDiv">
+                <span th:text="${tableError}"></span>
+            </div>
+        </div>
+    </div>
+
     <div class="row justify-content-center px-2">
         <div class="col-md d-flex overflow-scroll rounded-4 px-0">
             <table class="table table-responsive table-striped">
@@ -17,7 +26,7 @@
                     <th>Name</th>
                     <th>Number of Products</th>
                     <th>Creation Date</th>
-                    <th></th>
+                    <th th:unless="${deletedQuery} == 'true'"></th>
                     <th sec:authorize="hasRole('ROLE_ADMIN')"></th>
                 </tr>
                 </thead>
@@ -27,13 +36,15 @@
                     <td th:text="${cat.name}">name value</td>
                     <td th:text="${cat.products.size()}">number of products</td>
                     <td th:text="${#temporals.format(cat.createdDate, 'dd-MM-yyyy, HH:mm')}">date created</td>
-                    <td>
+                    <td th:unless="${cat.deleted}">
                         <a class="btn btn-outline-primary catUpdateBtn"
                            th:link="@{__${@categoryController.CATEGORY_UPDATE_PATH}__(id=${cat.id})}">
                             Update
-                        </a></td>
+                        </a>
+                    </td>
                     <td sec:authorize="hasRole('ROLE_ADMIN')">
-                        <a class="btn btn-outline-danger catDeleteBtn"
+                        <a th:unless="${cat.deleted}"
+                           class="btn btn-outline-danger catDeleteBtn"
                            th:link="@{__${@categoryController.CATEGORY_DELETE_PATH}__(
                                                         id=${cat.id},
                                                         name=${nameQuery},
@@ -41,7 +52,18 @@
                                                         pageSize=${categoryPage.getSize()}
                                                         )}">
                             Delete
-                        </a></td>
+                        </a>
+                        <a th:if="${cat.deleted}"
+                           class="btn btn-outline-warning catActivateBtn"
+                           th:link="@{__${@categoryController.CATEGORY_REACTIVATE_PATH}__(
+                                                        id=${cat.id},
+                                                        name=${nameQuery},
+                                                        pageNumber=${categoryPage.getNumber()},
+                                                        pageSize=${categoryPage.getSize()}
+                                                        )}">
+                            Activate
+                        </a>
+                    </td>
                 </tr>
                 </tbody>
             </table>
@@ -57,7 +79,9 @@
                         <a class="page-link btn rounded-start rounded-end-0" id="catPreviousPage"
                            th:link="@{__${url}__(name=${nameQuery},
                                           pageNumber=${categoryPage.getNumber()} - 1,
-                                          pageSize=${categoryPage.getSize()})}">
+                                          pageSize=${categoryPage.getSize()},
+                                          deleted=${deletedQuery}
+                                          )}">
                             Previous
                         </a>
                     </li>
@@ -66,7 +90,9 @@
                         <a class="page-link btn rounded-start-0 rounded-end" id="catNextPage"
                            th:link="@{__${url}__(name=${nameQuery},
                                           pageNumber=${categoryPage.getNumber()} + 1,
-                                          pageSize=${categoryPage.getSize()})}">
+                                          pageSize=${categoryPage.getSize()},
+                                          deleted=${deletedQuery}
+                                          )}">
                             Next
                         </a>
                     </li>

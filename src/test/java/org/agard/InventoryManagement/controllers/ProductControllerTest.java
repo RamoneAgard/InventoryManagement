@@ -38,7 +38,6 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.*;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -64,6 +63,9 @@ class ProductControllerTest {
 
     @MockBean(name = "outgoingOrderController")
     OutgoingOrderController outgoingOrderController;
+
+    @MockBean(name = "receivingOrderController")
+    ReceivingOrderController receivingOrderController;
     //
 
     @MockBean
@@ -84,9 +86,9 @@ class ProductControllerTest {
     }
 
     // Helper method to create a page for Product objects for testing purposes
-    Page<Product> createMockProductsPage() {
-        List<Category> cats = createMockCategoryList();
-        List<Volume> vols = createMockVolumeList();
+    public static Page<Product> createMockProductsPage() {
+        List<Category> cats = createMockCategoryPage().getContent();
+        List<Volume> vols = createMockVolumePage().getContent();
         Product p1 = Product.builder()
                 .id(1L)
                 .upc("142536475869")
@@ -130,7 +132,7 @@ class ProductControllerTest {
         return new PageImpl<Product>(Arrays.asList(p1, p2, p3));
     }
 
-    public static List<Category> createMockCategoryList(){
+    public static Page<Category> createMockCategoryPage(){
 
         Category c1 = Category.builder()
                         .id(1L)
@@ -147,10 +149,10 @@ class ProductControllerTest {
                         .name("Wheat Ale")
                         .build();
 
-        return Arrays.asList(c1, c2, c3);
+        return new PageImpl<Category>(Arrays.asList(c1, c2, c3));
     }
 
-    public static List<Volume> createMockVolumeList(){
+    public static Page<Volume> createMockVolumePage(){
 
         Volume v1 = Volume.builder()
                         .id(1L)
@@ -170,7 +172,7 @@ class ProductControllerTest {
                         .valueCode(6012)
                         .build();
 
-        return Arrays.asList(v1, v2, v3);
+        return new PageImpl<Volume>(Arrays.asList(v1, v2, v3));
     }
 
 
@@ -197,8 +199,8 @@ class ProductControllerTest {
     @Test
     @WithMockUser
     void getProductPage() throws Exception{
-        Mockito.when(volumeService.getAllVolumes()).thenReturn(createMockVolumeList());
-        Mockito.when(categoryService.getAllCategories()).thenReturn(createMockCategoryList());
+        Mockito.when(volumeService.getAllVolumes()).thenReturn(createMockVolumePage().getContent());
+        Mockito.when(categoryService.getAllCategories()).thenReturn(createMockCategoryPage().getContent());
 
         MvcResult mockResult = mockMvc.perform(get(ProductController.PRODUCT_PATH))
                 .andExpect(status().isOk())
@@ -211,10 +213,10 @@ class ProductControllerTest {
         verify(volumeService, times(1)).getAllVolumes();
 
         ModelMap modelMap = mockResult.getModelAndView().getModelMap();
-        assertEquals(((List<Category>)modelMap.getAttribute("categories")).size(), 3);
-        assertEquals(((List<Volume>)modelMap.getAttribute("volumes")).size(), 3);
+        assertEquals(3, ((List<Category>)modelMap.getAttribute("categories")).size());
+        assertEquals(3,  ((List<Volume>)modelMap.getAttribute("volumes")).size());
         ProductForm emptyProductForm = (ProductForm) modelMap.getAttribute("productForm");
-        assertEquals(emptyProductForm, new ProductForm());
+        assertEquals(new ProductForm(), emptyProductForm);
     }
 
     @Test
@@ -228,8 +230,8 @@ class ProductControllerTest {
     @Test
     @WithMockUser
     void getProductTable() throws Exception {
-        Mockito.when(productService.filterProductPage(any(), any(), any(), any(), any())).thenReturn(createMockProductsPage());
-        //Mockito.when(categoryService.getAllCategories()).thenReturn(createMockCategoryList());
+        Mockito.when(productService.filterProductPage(any(), any(), any(), any(), any()))
+                .thenReturn(createMockProductsPage());
 
         MvcResult mockResult = mockMvc.perform(get(ProductController.PRODUCT_TABLE_PATH))
                 .andExpect(status().isOk())
@@ -244,17 +246,17 @@ class ProductControllerTest {
         assertNull(modelMap.getAttribute("nameQuery"));
         assertNull(modelMap.getAttribute("categoriesQuery"));
         assertNull(modelMap.getAttribute("volumesQuery"));
-        assertEquals(productPage.getNumberOfElements(), 3);
+        assertEquals(3, productPage.getNumberOfElements());
         assertFalse(productPage.hasNext());
         assertFalse(productPage.hasPrevious());
-        assertEquals(productPage.getNumber(), 0);
-
+        assertEquals(0, productPage.getNumber());
     }
 
     @Test
     @WithMockUser
     void getProductTableWithPostFilters() throws Exception {
-        Mockito.when(productService.filterProductPage(any(),any(),any(),any(),any())).thenReturn(createMockProductsPage());
+        Mockito.when(productService.filterProductPage(any(),any(),any(),any(),any()))
+                .thenReturn(createMockProductsPage());
 
         MvcResult mockResult = mockMvc.perform(post(ProductController.PRODUCT_TABLE_PATH)
                         .with(csrf())
@@ -276,23 +278,78 @@ class ProductControllerTest {
         ModelMap modelMap = mockResult.getModelAndView().getModelMap();
         Page<Product> productPage = (Page<Product>) modelMap.getAttribute("productPage");
         assertEquals(modelMap.getAttribute("nameQuery"), "New");
-        assertEquals(
-                ((List<Long>)modelMap.getAttribute("categoriesQuery")).size(),
-                2);
-        assertEquals(
-                ((List<Long>)modelMap.getAttribute("volumesQuery")).size(),
-                1);
+        assertEquals(2,
+                ((List<Long>)modelMap.getAttribute("categoriesQuery")).size());
+        assertEquals(1,
+                ((List<Long>)modelMap.getAttribute("volumesQuery")).size());
         assertFalse(productPage.hasNext());
         assertFalse(productPage.hasPrevious());
-        assertEquals(productPage.getNumber(), 0);
-        assertEquals(productPage.getNumberOfElements(), 3);
+        assertEquals(0, productPage.getNumber());
+        assertEquals(3, productPage.getNumberOfElements());
+    }
+
+    @Test
+    @WithMockUser(roles = "ADMIN")
+    void getDeletedProductsTable() throws Exception{
+        Mockito.when(productService.filterDeletedProductsPage(any(),any(),any(),any(),any()))
+                .thenReturn(createMockProductsPage());
+        String nameQuery = "new";
+
+        MvcResult mockResult = mockMvc.perform(post(ProductController.PRODUCT_TABLE_PATH)
+                .with(csrf())
+                .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+                .content(createPostFormData(
+                        "name", nameQuery,
+                        "deleted", "true"
+                        ))
+                )
+                .andExpect(status().isOk())
+                .andExpect(view().name(ViewNames.PRODUCT_TABLE_FRAGMENT))
+                .andExpect(model().attributeExists("productPage", "nameQuery", "deletedQuery"))
+                .andReturn();
+
+        verify(productService, times(1)).filterDeletedProductsPage(nameQuery, null, null, 0, null);
+        verify(productService, times(0)).filterProductPage(any(), any(), any(), any(), any());
+
+        ModelMap modelMap = mockResult.getModelAndView().getModelMap();
+        Page<Product> productPage = (Page<Product>) modelMap.getAttribute("productPage");
+        assertFalse(productPage.hasNext());
+        assertFalse(productPage.hasPrevious());
+        assertEquals(0, productPage.getNumber());
+        assertEquals(3, productPage.getNumberOfElements());
+        assertEquals(nameQuery, modelMap.getAttribute("nameQuery"));
+        assertEquals("true", modelMap.getAttribute("deletedQuery"));
+    }
+
+    @Test
+    @WithMockUser(roles = "EDITOR")
+    void getDeletedProductsTableForbidden() throws Exception{
+        String nameQuery = "new";
+
+        MvcResult mockResult = mockMvc.perform(post(ProductController.PRODUCT_TABLE_PATH)
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+                        .content(createPostFormData(
+                                "name", nameQuery,
+                                "deleted", "true"
+                        ))
+                )
+                .andExpect(status().isForbidden())
+                .andExpect(view().name(ViewNames.ERROR_VIEW))
+                .andExpect(model().attributeExists("errorTitle", "errorMessageList"))
+                .andReturn();
+
+        verifyNoInteractions(productService);
+
+        ModelMap modelMap = mockResult.getModelAndView().getModelMap();
+        assertEquals("HTTP 403 - User does not have access", modelMap.getAttribute("errorTitle"));
     }
 
     @Test
     @WithMockUser(roles = {"EDITOR"})
     void getNewProductUpdateForm() throws Exception{
-        Mockito.when(categoryService.getAllCategories()).thenReturn(createMockCategoryList());
-        Mockito.when(volumeService.getAllVolumes()).thenReturn(createMockVolumeList());
+        Mockito.when(categoryService.getAllCategories()).thenReturn(createMockCategoryPage().getContent());
+        Mockito.when(volumeService.getAllVolumes()).thenReturn(createMockVolumePage().getContent());
 
         MvcResult mockResult = mockMvc.perform(get(ProductController.PRODUCT_UPDATE_PATH))
                 .andExpect(status().isOk())
@@ -307,10 +364,10 @@ class ProductControllerTest {
         ModelMap modelMap = mockResult.getModelAndView().getModelMap();
         ProductForm emptyProductForm = (ProductForm) modelMap.getAttribute("productForm");
         List<Category> categoryList = (List<Category>) modelMap.getAttribute("categories");
-        assertEquals(categoryList.size(), 3);
+        assertEquals(3, categoryList.size());
         List<Volume> volumeList = (List<Volume>) modelMap.getAttribute("volumes");
-        assertEquals(volumeList.size(), 3);
-        assertEquals(emptyProductForm, new ProductForm());
+        assertEquals(3, volumeList.size());
+        assertEquals(new ProductForm(), emptyProductForm);
     }
 
     @Test
@@ -329,40 +386,40 @@ class ProductControllerTest {
                 .andReturn();
 
         verify(productService, times(1)).getFormById(longArgumentCaptor.capture());
-        assertEquals(longArgumentCaptor.getValue(), mockProductForm.getId());
+        assertEquals(mockProductForm.getId(), longArgumentCaptor.getValue());
 
         verify(categoryService, times(1)).getAllCategories();
         verify(volumeService, times(1)).getAllVolumes();
 
         ModelMap modelMap = mockResult.getModelAndView().getModelMap();
         ProductForm existing = (ProductForm) modelMap.getAttribute("productForm");
-        assertEquals(existing, mockProductForm);
+        assertEquals(mockProductForm, existing);
     }
 
     @Test
     @WithMockUser(roles = "EDITOR")
     void getNonExistingProductUpdate() throws Exception{
-        Mockito.when(productService.getFormById(any())).thenThrow(NotFoundException.class);
+        String mockExceptionMessage = "Product not found for given ID";
+        Mockito.when(productService.getFormById(any()))
+                .thenThrow(new NotFoundException(mockExceptionMessage));
         String fakeId = "4";
 
         MvcResult mockResult = mockMvc.perform(get(ProductController.PRODUCT_UPDATE_PATH)
                         .queryParam("id", fakeId))
-                .andExpect(status().isNotFound())
-                .andExpect(view().name(ViewNames.ERROR_VIEW))
-                .andExpect(model().attributeExists("errorTitle", "errorMessageList"))
+                .andExpect(status().isOk())
+                .andExpect(view().name(ViewNames.PRODUCT_UPDATE_FRAGMENT))
+                .andExpect(model().attributeExists("productForm", "addError", "categories", "volumes"))
                 .andReturn();
 
         verify(productService, times(1)).getFormById(longArgumentCaptor.capture());
-        assertEquals(longArgumentCaptor.getValue(), Long.valueOf(fakeId));
+        assertEquals(Long.valueOf(fakeId), longArgumentCaptor.getValue());
 
-        verifyNoInteractions(categoryService);
-        verifyNoInteractions(volumeService);
+        verify(categoryService, times(1)).getAllCategories();
+        verify(volumeService, times(1)).getAllVolumes();
 
         ModelMap modelMap = mockResult.getModelAndView().getModelMap();
-        List errorMsgList = (List) modelMap.getAttribute("errorMessageList");
-        assertEquals(errorMsgList.size(), 1);
-        //assertEquals(errorMsgList.get(0), "Product not found for ID: "+fakeId);
-
+        assertEquals(new ProductForm(), modelMap.getAttribute("productForm"));
+        assertEquals(mockExceptionMessage, modelMap.getAttribute("addError"));
     }
 
     @Test
@@ -393,14 +450,14 @@ class ProductControllerTest {
                 .andReturn();
 
         verify(productService, times(1)).saveProduct(productFormArgumentCaptor.capture());
-        assertEquals(productFormArgumentCaptor.getValue(), mockProductForm);
+        assertEquals(mockProductForm, productFormArgumentCaptor.getValue());
 
         verify(categoryService, times(1)).getAllCategories();
         verify(volumeService, times(1)).getAllVolumes();
 
         ModelMap modelMap = mockResult.getModelAndView().getModelMap();
         ProductForm emptyProductForm = (ProductForm) modelMap.getAttribute("productForm");
-        assertEquals(emptyProductForm, new ProductForm());
+        assertEquals(new ProductForm(), emptyProductForm);
     }
 
     @Test
@@ -437,7 +494,7 @@ class ProductControllerTest {
         ModelMap modelMap = mockResult.getModelAndView().getModelMap();
         BindingResult bindingResult = (BindingResult) modelMap.getAttribute("org.springframework.validation.BindingResult.productForm");
         assertNotNull(bindingResult);
-        assertEquals(bindingResult.getErrorCount(), 3);
+        assertEquals(3, bindingResult.getErrorCount());
         assertTrue(bindingResult.hasFieldErrors("upc"));
         assertTrue(bindingResult.hasFieldErrors("volumeId"));
         assertTrue(bindingResult.hasFieldErrors("cost"));
@@ -486,14 +543,15 @@ class ProductControllerTest {
         verifyNoInteractions(productService);
 
         ModelMap modelMap = mockResult.getModelAndView().getModelMap();
-        assertEquals(modelMap.getAttribute("errorTitle"), "HTTP 403 - User does not have access");
+        assertEquals("HTTP 403 - User does not have access", modelMap.getAttribute("errorTitle"));
 
     }
 
     @Test
     @WithMockUser(roles = "ADMIN")
     void deleteProductById() throws Exception{
-        Mockito.when(productService.filterProductPage(any(), any(), any(), any(), any())).thenReturn(createMockProductsPage());
+        Mockito.when(productService.filterProductPage(any(), any(), any(), any(), any()))
+                .thenReturn(createMockProductsPage());
         Long mockId = 2L;
 
         MvcResult mockResult = mockMvc.perform(get(ProductController.PRODUCT_DELETE_PATH)
@@ -509,44 +567,46 @@ class ProductControllerTest {
                 .andReturn();
 
         verify(productService, times(1)).deleteById(longArgumentCaptor.capture());
-        assertEquals(longArgumentCaptor.getValue(), mockId);
+        assertEquals(mockId, longArgumentCaptor.getValue());
 
         verify(productService, times(1)).filterProductPage(eq(null), any(List.class), any(List.class), eq(0), eq(null));
 
         ModelMap modelMap = mockResult.getModelAndView().getModelMap();
         Page<Product> productPage = (Page<Product>) modelMap.getAttribute("productPage");
-        assertEquals(
-                ((List<Long>)modelMap.getAttribute("categoriesQuery")).size(),
-                1);
-        assertEquals(
-                ((List<Long>)modelMap.getAttribute("volumesQuery")).size(),
-                2);
+        assertEquals(1,
+                ((List<Long>)modelMap.getAttribute("categoriesQuery")).size());
+        assertEquals(2,
+                ((List<Long>)modelMap.getAttribute("volumesQuery")).size());
         assertNull(modelMap.getAttribute("nameQuery"));
-        assertEquals(productPage.getNumber(), 0);
+        assertEquals(3, productPage.getNumberOfElements());
     }
 
     @Test
     @WithMockUser(roles = "ADMIN")
     void deleteNotExistingProduct() throws Exception{
-        Mockito.doThrow(NotFoundException.class).when(productService).deleteById(any(Long.class));
+        String mockExceptionMessage = "Product not found for given ID";
+        Mockito.doThrow(new NotFoundException(mockExceptionMessage))
+                .when(productService).deleteById(any(Long.class));
+        Mockito.when(productService.filterProductPage(any(), any(), any(), any(), any()))
+                .thenReturn(createMockProductsPage());
         Long fakeId = 5L;
 
         MvcResult mockResult = mockMvc.perform(get(ProductController.PRODUCT_DELETE_PATH)
                 .queryParam("id", fakeId.toString()))
-                .andExpect(status().isNotFound())
-                .andExpect(view().name(ViewNames.ERROR_VIEW))
-                .andExpect(model().attributeExists("errorTitle", "errorMessageList"))
+                .andExpect(status().isOk())
+                .andExpect(view().name(ViewNames.PRODUCT_TABLE_FRAGMENT))
+                .andExpect(model().attributeExists("productPage", "tableError"))
                 .andReturn();
 
         verify(productService, times(1)).deleteById(longArgumentCaptor.capture());
         assertEquals(longArgumentCaptor.getValue(), fakeId);
 
-        verify(productService, times(0)).filterProductPage(any(), any(), any(), any(), any());
+        verify(productService, times(1)).filterProductPage(null, null, null, 0, null);
 
         ModelMap modelMap = mockResult.getModelAndView().getModelMap();
-        List errorMsgList = (List) modelMap.getAttribute("errorMessageList");
-        assertEquals(errorMsgList.size(), 1);
-        //assertEquals(errorMsgList.get(0), "Product not found for ID: "+fakeId);
+        Page<Product> productPage = (Page<Product>) modelMap.getAttribute("productPage");
+        assertEquals(3, productPage.getNumberOfElements());
+        assertEquals(mockExceptionMessage, modelMap.getAttribute("tableError"));
     }
 
     @Test
@@ -563,6 +623,88 @@ class ProductControllerTest {
         verifyNoInteractions(productService);
 
         ModelMap modelMap = mockResult.getModelAndView().getModelMap();
-        assertEquals(modelMap.getAttribute("errorTitle"), "HTTP 403 - User does not have access");
+        assertEquals("HTTP 403 - User does not have access", modelMap.getAttribute("errorTitle"));
     }
+
+    @Test
+    @WithMockUser(roles = "ADMIN")
+    void activateProductById() throws Exception{
+        Mockito.when(productService.filterDeletedProductsPage(any(), any(), any(), any(), any()))
+                .thenReturn(createMockProductsPage());
+        Long mockId = 2L;
+
+        MvcResult mockResult = mockMvc.perform(get(ProductController.PRODUCT_REACTIVATE_PATH)
+                        .queryParam("id", mockId.toString())
+                        .queryParam("category", "1")
+                        .queryParam("volume", "1")
+                        .queryParam("volume", "2")
+                        .queryParam("pageNumber", "0")
+                )
+                .andExpect(status().isOk())
+                .andExpect(view().name(ViewNames.PRODUCT_TABLE_FRAGMENT))
+                .andExpect(model().attributeExists("productPage", "categoriesQuery", "volumesQuery", "deletedQuery"))
+                .andReturn();
+
+        verify(productService, times(1)).activateById(longArgumentCaptor.capture());
+        assertEquals(mockId, longArgumentCaptor.getValue());
+
+        verify(productService, times(1)).filterDeletedProductsPage(eq(null), any(List.class), any(List.class), eq(0), eq(null));
+
+        ModelMap modelMap = mockResult.getModelAndView().getModelMap();
+        Page<Product> productPage = (Page<Product>) modelMap.getAttribute("productPage");
+        assertEquals(0, productPage.getNumber());
+        assertEquals(1,
+                ((List<Long>)modelMap.getAttribute("categoriesQuery")).size());
+        assertEquals(2,
+                ((List<Long>)modelMap.getAttribute("volumesQuery")).size());
+        assertNull(modelMap.getAttribute("nameQuery"));
+        assertEquals("true", modelMap.getAttribute("deletedQuery"));
+    }
+
+    @Test
+    @WithMockUser(roles = "ADMIN")
+    void activateNotExistingProduct() throws Exception{
+        String mockExceptionMessage = "Product not found for given ID";
+        Mockito.doThrow(new NotFoundException(mockExceptionMessage))
+                .when(productService).activateById(any(Long.class));
+        Mockito.when(productService.filterDeletedProductsPage(any(), any(), any(), any(), any()))
+                .thenReturn(createMockProductsPage());
+        Long fakeId = 5L;
+
+        MvcResult mockResult = mockMvc.perform(get(ProductController.PRODUCT_REACTIVATE_PATH)
+                        .queryParam("id", fakeId.toString()))
+                .andExpect(status().isOk())
+                .andExpect(view().name(ViewNames.PRODUCT_TABLE_FRAGMENT))
+                .andExpect(model().attributeExists("productPage", "tableError", "deletedQuery"))
+                .andReturn();
+
+        verify(productService, times(1)).activateById(longArgumentCaptor.capture());
+        assertEquals(fakeId, longArgumentCaptor.getValue());
+
+        verify(productService, times(1)).filterDeletedProductsPage(null, null, null, 0, null);
+
+        ModelMap modelMap = mockResult.getModelAndView().getModelMap();
+        Page<Product> productPage = (Page<Product>) modelMap.getAttribute("productPage");
+        assertEquals(3, productPage.getNumberOfElements());
+        assertEquals("true", modelMap.getAttribute("deletedQuery"));
+        assertEquals(mockExceptionMessage, modelMap.getAttribute("tableError"));
+    }
+
+    @Test
+    @WithMockUser(roles = "EDITOR")
+    void activateProductForbidden() throws Exception{
+
+        MvcResult mockResult = mockMvc.perform(get(ProductController.PRODUCT_REACTIVATE_PATH)
+                        .queryParam("id", "2"))
+                .andExpect(status().isForbidden())
+                .andExpect(view().name(ViewNames.ERROR_VIEW))
+                .andExpect(model().attributeExists("errorTitle", "errorMessageList"))
+                .andReturn();
+
+        verifyNoInteractions(productService);
+
+        ModelMap modelMap = mockResult.getModelAndView().getModelMap();
+        assertEquals("HTTP 403 - User does not have access", modelMap.getAttribute("errorTitle"));
+    }
+
 }

@@ -59,6 +59,18 @@ public class CategoryServiceImpl implements CategoryService {
     }
 
     @Override
+    public Page<Category> filterDeletedCategoryPage(String name, Integer pageNumber, Integer pageSize) {
+
+        PageRequest pageRequest =  buildPageRequest(pageNumber, pageSize);
+
+        if(!StringUtils.hasText(name)){
+            name = null;
+        }
+
+        return categoryRepository.findAllDeletedByFilter(name, pageRequest);
+    }
+
+    @Override
     public Category getById(Long id) {
         return categoryRepository.findByIdAndDeletedFalse(id)
                 .orElseThrow(()-> {
@@ -85,6 +97,15 @@ public class CategoryServiceImpl implements CategoryService {
     public void deleteById(Long id) {
         if(categoryRepository.existsById(id)){
             categoryRepository.softDeleteById(id);
+            return;
+        }
+        throw new NotFoundException("Category not found for ID: " + id);
+    }
+
+    @Override
+    public void activateById(Long id) {
+        if(categoryRepository.existsById(id)){
+            categoryRepository.reactivateById(id);
             return;
         }
         throw new NotFoundException("Category not found for ID: " + id);

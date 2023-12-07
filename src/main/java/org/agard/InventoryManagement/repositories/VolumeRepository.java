@@ -23,8 +23,17 @@ public interface VolumeRepository extends JpaRepository<Volume, Long> {
             "(:description is null or UPPER(v.description) LIKE UPPER(concat('%', :description, '%')))")
     Page<Volume> findAllByFilter(@Param("description") String description, Pageable pageable);
 
+    @Query("SELECT v from Volume v WHERE v.deleted = true and" +
+            "(:description is null or UPPER(v.description) LIKE UPPER(concat('%', :description, '%')))")
+    Page<Volume> findAllDeletedByFilter(@Param("description") String description, Pageable pageable);
+
     @Query("UPDATE Volume v SET v.deleted=true WHERE v.id = :id")
     @Modifying
     @Transactional
     void softDeleteById(@Param("id") Long id);
+
+    @Query("UPDATE Volume v SET v.deleted=false WHERE v.id = :id")
+    @Modifying
+    @Transactional
+    void reactivateById(@Param("id") Long id);
 }

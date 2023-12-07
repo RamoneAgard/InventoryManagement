@@ -53,4 +53,11 @@ public class OutgoingOrder {
         }
         return sum;
     }
+
+    public void setItems(Set<OrderItem> itemsToSet){
+        if(itemsToSet != null){
+            this.items.clear();
+            this.items.addAll(itemsToSet);
+        }
+    }
 }

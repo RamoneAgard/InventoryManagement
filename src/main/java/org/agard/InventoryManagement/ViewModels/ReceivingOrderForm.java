@@ -1,8 +1,10 @@
 package org.agard.InventoryManagement.ViewModels;
 
 import jakarta.persistence.*;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -26,10 +28,12 @@ public class ReceivingOrderForm {
     private Long id;
 
     @NotBlank
+    @Size(max = 255, min = 2)
     private String supplier;
 
     @NotNull
     @Builder.Default
+    @Valid
     private List<OrderItemForm> items = new ArrayList<>();
 
     private LocalDateTime createdDate;

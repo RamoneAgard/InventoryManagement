@@ -28,10 +28,6 @@ public class OutgoingOrderServiceImpl implements OutgoingOrderService {
 
     private final OrderItemService itemService;
 
-//    private final OrderItemRepository itemRepository;
-//
-//    private final ProductService productService;
-
     private final OutgoingOrderFormMapper formMapper;
 
     private final Integer DEFAULT_PAGE_SIZE = 20;
@@ -68,46 +64,38 @@ public class OutgoingOrderServiceImpl implements OutgoingOrderService {
 
     @Override
     public void saveOrder(OutgoingOrderForm orderForm) {
+
+        Set<OrderItem> itemsToSave = new HashSet<>();
+        for(OrderItemForm item : orderForm.getItems()){
+            itemsToSave.add(
+                itemService.updateOrCreateOrderItem(item, true)
+            );
+        }
+
         OutgoingOrder orderToSave;
+        Set<OrderItem> itemsToDelete = new HashSet<>();
         if(orderForm.getId() == null){
             orderToSave = new OutgoingOrder();
         }
         else {
             orderToSave = getById(orderForm.getId());
+            for(OrderItem oldItem : orderToSave.getItems()){
+                if(!itemsToSave.contains(oldItem)){
+                    itemsToDelete.add(oldItem);
+                }
+            }
         }
-        Set<OrderItem> itemsToSave = new HashSet<>();
-        for(OrderItemForm item : orderForm.getItems()){;
-            itemsToSave.add(
-                    itemService.updateOrCreateOrderItem(item, true)
-            );
-        }
+
         orderToSave.setItems(itemsToSave);
         orderToSave.setReceiver(orderForm.getReceiver());
         orderRepository.save(orderToSave);
+
+        itemService.revertInventory(itemsToDelete, true);
+        for(OrderItem item : itemsToDelete){
+            itemService.deleteById(item.getId());
+        }
     }
 
-//    private OrderItem updateOrCreateItem(OrderItemForm orderItem){
-//        OrderItem itemToBuild;
-//        if(orderItem.getId() == null){
-//            itemToBuild = new OrderItem();
-//        }
-//        else {
-//            itemToBuild = itemRepository.findById(orderItem.getId())
-//                    .orElseThrow(() -> {
-//                        throw new NotFoundException("Could not retrieve order line with Id: " + orderItem.getId()
-//                            + ". Please reload and try again.");
-//                    });
-//        }
-//        Product itemProduct = productService.getById(orderItem.getProduct().getId());
-//        itemProduct.setPrice(orderItem.getPrice());
-//        itemProduct = productService.saveProduct(itemProduct);
-//
-//        itemToBuild.setProduct(itemProduct);
-//        itemToBuild.setQuantity(orderItem.getQuantity());
-//        itemToBuild.setPrice(orderItem.getPrice());
-//
-//        return itemRepository.save(itemToBuild);
-//    }
 
     @Override
     public OutgoingOrderForm getFormById(Long id) {
@@ -115,12 +103,6 @@ public class OutgoingOrderServiceImpl implements OutgoingOrderService {
         return formMapper.outgoingOrderToOutgoingOrderForm(order);
     }
 
-//    @Override
-//    public OrderItemForm createItemFormByItemCode(String itemCode) {
-//        OrderItemForm itemForm = new OrderItemForm();
-//        itemForm.setProduct(productService.getItemProductByCode(itemCode));
-//        return itemForm;
-//    }
 
     @Override
     public OutgoingOrder getById(Long id) {
@@ -133,6 +115,7 @@ public class OutgoingOrderServiceImpl implements OutgoingOrderService {
     @Override
     public void deleteById(Long id) {
         if(orderRepository.existsById(id)){
+            itemService.revertInventory(getById(id).getItems(), true);
             orderRepository.deleteById(id);
             return;
         }

@@ -8,6 +8,15 @@
 <body>
 
 <th:block th:fragment="volumeTable">
+
+    <div th:if="${tableError}" class="row justify-content-center">
+        <div class="col-auto">
+            <div class="alert alert-danger" role="alert" id="tableErrorDiv">
+                <span th:text="${tableError}"></span>
+            </div>
+        </div>
+    </div>
+
     <div class="row justify-content-center px-2">
         <div class="col-md d-flex overflow-scroll rounded-4 px-0">
             <table class="table table-responsive table-striped">
@@ -18,7 +27,7 @@
                     <th>Value Code</th>
                     <th>Number of Products</th>
                     <th>Creation Date</th>
-                    <th></th>
+                    <th th:unless="${deletedQuery} == 'true'"></th>
                     <th sec:authorize="hasRole('ROLE_ADMIN')"></th>
                 </tr>
                 </thead>
@@ -29,13 +38,15 @@
                     <td th:text="${vol.valueCode}">code value</td>
                     <td th:text="${vol.products.size()}">number of products</td>
                     <td th:text="${#temporals.format(vol.createdDate, 'dd-MM-yyyy, HH:mm')}">date created</td>
-                    <td>
+                    <td th:unless="${vol.deleted}">
                         <a class="btn btn-outline-primary volUpdateBtn"
                            th:link="@{__${@volumeController.VOLUME_UPDATE_PATH}__(id=${vol.id})}">
                             Update
-                        </a></td>
+                        </a>
+                    </td>
                     <td sec:authorize="hasRole('ROLE_ADMIN')">
-                        <a class="btn btn-outline-danger volDeleteBtn"
+                        <a th:unless="${vol.deleted}"
+                           class="btn btn-outline-danger volDeleteBtn"
                            th:link="@{__${@volumeController.VOLUME_DELETE_PATH}__(
                                                         id=${vol.id},
                                                         description=${descriptionQuery},
@@ -43,7 +54,18 @@
                                                         pageSize=${volumePage.getSize()}
                                                         )}">
                             Delete
-                        </a></td>
+                        </a>
+                        <a th:if="${vol.deleted}"
+                           class="btn btn-outline-warning volActivateBtn"
+                           th:link="@{__${@volumeController.VOLUME_REACTIVATE_PATH}__(
+                                                        id=${vol.id},
+                                                        description=${descriptionQuery},
+                                                        pageNumber=${volumePage.getNumber()},
+                                                        pageSize=${volumePage.getSize()}
+                                                        )}">
+                            Activate
+                        </a>
+                    </td>
                 </tr>
                 </tbody>
             </table>
@@ -59,7 +81,9 @@
                         <a class="page-link btn rounded-start rounded-end-0" id="volPreviousPage"
                            th:link="@{__${url}__(description=${descriptionQuery},
                                           pageNumber=${volumePage.getNumber()} - 1,
-                                          pageSize=${volumePage.getSize()})}">
+                                          pageSize=${volumePage.getSize()},
+                                          deleted=${deletedQuery}
+                                          )}">
                             Previous
                         </a>
                     </li>
@@ -68,7 +92,9 @@
                         <a class="page-link btn rounded-start-0 rounded-end" id="volNextPage"
                            th:link="@{__${url}__(description=${descriptionQuery},
                                           pageNumber=${volumePage.getNumber()} + 1,
-                                          pageSize=${volumePage.getSize()})}">
+                                          pageSize=${volumePage.getSize()},
+                                          deleted=${deletedQuery}
+                                          )}">
                             Next
                         </a>
                     </li>

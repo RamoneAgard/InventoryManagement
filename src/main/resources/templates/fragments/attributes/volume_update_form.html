@@ -29,6 +29,14 @@
                  id="volFormCollapse">
                 <form class="form" id="volumeDataForm" th:action="@{/volumes/update(id=${volume.id})}" method="post" th:object="${volume}">
 
+                    <div class="row justify-content-center">
+                        <div class="col-auto">
+                            <div th:if="${addError}" class="alert alert-danger" role="alert" id="addErrorDiv">
+                                <span th:text="${addError}"></span>
+                            </div>
+                        </div>
+                    </div>
+
                     <div class="mb-2">
                         <label class="form-label" for="description">Volume Description</label>
                         <span th:if="${#fields.hasErrors('description')}" th:errors="*{description}" class="text-danger"></span>

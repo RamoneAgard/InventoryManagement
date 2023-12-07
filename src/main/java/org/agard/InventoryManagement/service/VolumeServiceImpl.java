@@ -57,6 +57,18 @@ public class VolumeServiceImpl implements VolumeService {
     }
 
     @Override
+    public Page<Volume> filterDeletedVolumePage(String description, Integer pageNumber, Integer pageSize) {
+
+        PageRequest pageRequest = buildPageRequest(pageNumber, pageSize);
+
+        if(!StringUtils.hasText(description)){
+            description = null;
+        }
+
+        return volumeRepository.findAllDeletedByFilter(description, pageRequest);
+    }
+
+    @Override
     public Volume getById(Long id) {
         return volumeRepository.findByIdAndDeletedFalse(id)
                 .orElseThrow(()-> {
@@ -73,6 +85,15 @@ public class VolumeServiceImpl implements VolumeService {
     public void deleteById(Long id) {
         if(volumeRepository.existsById(id)){
             volumeRepository.softDeleteById(id);
+            return;
+        }
+        throw new NotFoundException("Volume not found for ID: " + id);
+    }
+
+    @Override
+    public void activateById(Long id) {
+        if(volumeRepository.existsById(id)){
+            volumeRepository.reactivateById(id);
             return;
         }
         throw new NotFoundException("Volume not found for ID: " + id);

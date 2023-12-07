@@ -28,7 +28,14 @@
             <div class="collapse p-1 bg-success-subtle rounded-3"
                  th:classappend="${productForm.id} != null ? |show|"
                  id="formCollapse">
-                <form class="form" id="dataForm" th:action="@{/products/update(id=${productForm.id})}" th:object="${productForm}" method="post">
+                <form class="form" id="dataForm" th:action="@{__${@productController.PRODUCT_UPDATE_PATH}__(id=${productForm.id})}" th:object="${productForm}" method="post">
+                    <div class="row justify-content-center">
+                        <div class="col-auto">
+                            <div th:if="${addError}" class="alert alert-danger" role="alert" id="addErrorDiv">
+                                <span th:text="${addError}"></span>
+                            </div>
+                        </div>
+                    </div>
                     <div class="row">
                     <div class="col-md-6">
                         <div class="mb-2">

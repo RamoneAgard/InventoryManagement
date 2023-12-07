@@ -1,14 +1,20 @@
 package org.agard.InventoryManagement.service;
 
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.agard.InventoryManagement.Exceptions.NotFoundException;
 import org.agard.InventoryManagement.Exceptions.StockException;
 import org.agard.InventoryManagement.ViewModels.OrderItemForm;
 import org.agard.InventoryManagement.domain.OrderItem;
+import org.agard.InventoryManagement.domain.OutgoingOrder;
 import org.agard.InventoryManagement.domain.Product;
 import org.agard.InventoryManagement.repositories.OrderItemRepository;
 import org.aspectj.weaver.ast.Or;
 import org.springframework.stereotype.Service;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -28,6 +34,7 @@ public class OrderItemServiceImpl implements OrderItemService {
     }
 
     @Override
+    @Transactional
     public OrderItem updateOrCreateOrderItem(OrderItemForm orderItemForm, boolean outgoing) {
         OrderItem itemToSave;
         boolean isOld = false;
@@ -50,7 +57,7 @@ public class OrderItemServiceImpl implements OrderItemService {
             }
             if(stockUpdate < 0){
                 throw new StockException("The input quantity for item: " + itemProduct.getItemCode() +
-                        " exceeds the current item stock. If this is correct, manually adjust the product stock" +
+                        " exceeds the current item stock. If this is correct, manually adjust the item stock" +
                         "before creating this order.");
             }
             itemProduct.setStock(stockUpdate);
@@ -83,5 +90,45 @@ public class OrderItemServiceImpl implements OrderItemService {
                 productService.getItemProductByCode(itemCode)
         );
         return itemForm;
+    }
+
+    @Override
+    @Transactional
+    public void revertInventory(Collection<OrderItem> items, boolean outgoing) {
+        List<Product> productsToRevert = new ArrayList<>();
+
+        for(OrderItem item : items){
+            Product itemProduct = item.getProduct();
+            if(outgoing){
+                itemProduct.setStock(
+                        itemProduct.getStock() + item.getQuantity()
+                );
+            }
+            else{
+                if(itemProduct.getStock() < item.getQuantity()){
+                    throw new StockException("Reverting the received inventory on this order for " +
+                            "item: " + itemProduct.getItemCode() + " exceeds the currently " +
+                            "available stock. To continue, manually adjust the item stock before" +
+                            "deleting this order.");
+                }
+                itemProduct.setStock(
+                        itemProduct.getStock() - item.getQuantity()
+                );
+            }
+            productsToRevert.add(itemProduct);
+        }
+
+        for(Product revertProduct : productsToRevert){
+            productService.saveProduct(revertProduct);
+        }
+    }
+
+    @Override
+    public void deleteById(Long id) {
+        if(itemRepository.existsById(id)){
+            itemRepository.deleteById(id);
+            return;
+        }
+        throw new NotFoundException("Order line not found for ID: " + id);
     }
 }

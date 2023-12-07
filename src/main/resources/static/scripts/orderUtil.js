@@ -15,6 +15,8 @@ const orderTableNextBtnId = "orderNextPage";
 const orderTablePreviousBtnId = "orderPreviousPage";
 const orderTableUpdateBtnClassName = "orderUpdateBtn";
 const orderTableDeleteBtnClassName = "orderDeleteBtn";
+const deleteConfirmModalId = "confirmModal";
+const deleteModalBtnId = "confirmBtn";
 
 const productTableNextBtnId = "nextPage";
 const productTablePreviousBtnId = "previousPage";
@@ -25,9 +27,10 @@ var orderFormObserver;
 if(orderFormDiv != null){
 
     var orderTableUpdateAfterSubmit = () => {};
-    if(orderTableDiv != null && orderFilterForm != null){
+    if((orderTableDiv && orderFilterForm) && (productTableDiv && productFilterForm)){
         orderTableUpdateAfterSubmit = () => {
             getDataFilterData(orderFilterForm, orderTableDiv);
+            getDataFilterData(productFilterForm, productTableDiv)
         }
     }
 
@@ -37,7 +40,7 @@ if(orderFormDiv != null){
     });
 
     orderFormObserver = new MutationObserver(function(mutations){
-        setListenerForDataForm(mutations, orderFormDiv, orderTableUpdateAfterSubmit, dataFormElId)
+        setListenerForDataForm(mutations, orderFormDiv, orderTableUpdateAfterSubmit, dataFormElId);
         setListenerForAddForm(mutations, orderFormDiv, addFormElId, addFormQueryName, dataFormElId);
         setListenerForFormItemDelete(mutations, orderFormDiv, formDeleteBtnClassName, dataFormElId);
         setListenerForClearUpdate(mutations, orderFormDiv, formClearBtnId);
@@ -71,6 +74,7 @@ if(orderTableDiv != null){
             setListenerForDataUpdates(mutations, orderFormDiv, orderTableUpdateBtnClassName);
         }
         setListenerForDataDelete(mutations, orderTableDiv, orderTableDeleteBtnClassName);
+        setUpDeleteConfirmModal(mutations, orderTableDiv, deleteConfirmModalId, deleteModalBtnId);
     });
     const orderTableObserverConfig = {
             subtree : true,
@@ -193,6 +197,24 @@ function deleteItemInForm(deleteBtn, resultContainer, dataForm){
     }
     fetchData(callback, "POST", url, formData);
 }
+
+function setUpDeleteConfirmModal(mutations, resultContainer, modalId, modalConfirmBtnId){
+    for(const mutation of mutations){
+        if(mutation.type === "childList"){
+            modalEl = document.getElementById(modalId);
+            if(modalEl){
+                modalEl.addEventListener("show.bs.modal", (event) =>{
+                    const triggerBtn = event.relatedTarget;
+                    const linkVal = triggerBtn.getAttribute("link");
+                    const modalActionBtn = document.getElementById(modalConfirmBtnId);
+                    modalActionBtn.setAttribute("link", linkVal);
+                });
+            }
+            break;
+        }
+    }
+}
+
 
 
 function formatValue(value){

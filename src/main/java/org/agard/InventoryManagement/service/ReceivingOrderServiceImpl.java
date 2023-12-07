@@ -62,13 +62,6 @@ public class ReceivingOrderServiceImpl implements ReceivingOrderService {
 
     @Override
     public void saveOrder(ReceivingOrderForm orderForm) {
-        ReceivingOrder orderToSave;
-        if(orderForm.getId() == null){
-            orderToSave = new ReceivingOrder();
-        }
-        else {
-            orderToSave = getById(orderForm.getId());
-        }
 
         Set<OrderItem> itemsToSave = new HashSet<>();
         for(OrderItemForm item : orderForm.getItems()){
@@ -76,9 +69,29 @@ public class ReceivingOrderServiceImpl implements ReceivingOrderService {
                     itemService.updateOrCreateOrderItem(item, false)
             );
         }
+
+        ReceivingOrder orderToSave;
+        Set<OrderItem> itemsToDelete = new HashSet<>();
+        if(orderForm.getId() == null){
+            orderToSave = new ReceivingOrder();
+        }
+        else {
+            orderToSave = getById(orderForm.getId());
+            for(OrderItem oldItem : orderToSave.getItems()){
+                if(!itemsToSave.contains(oldItem)){
+                    itemsToDelete.add(oldItem);
+                }
+            }
+        }
+
         orderToSave.setItems(itemsToSave);
         orderToSave.setSupplier(orderForm.getSupplier());
         orderRepository.save(orderToSave);
+
+        itemService.revertInventory(itemsToDelete, false);
+        for(OrderItem item : itemsToDelete){
+            itemService.deleteById(item.getId());
+        }
     }
 
     @Override
@@ -98,6 +111,7 @@ public class ReceivingOrderServiceImpl implements ReceivingOrderService {
     @Override
     public void deleteById(Long id) {
         if(orderRepository.existsById(id)){
+            itemService.revertInventory(getById(id).getItems(), false);
             orderRepository.deleteById(id);
             return;
         }

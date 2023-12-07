@@ -11,9 +11,13 @@ public interface VolumeService {
 
     Page<Volume> filterVolumePage(String description, Integer pageNumber, Integer pageSize);
 
+    Page<Volume> filterDeletedVolumePage(String description, Integer pageNumber, Integer pageSize);
+
     Volume getById(Long id);
 
     void saveVolume(Volume volume);
 
     void deleteById(Long id);
+
+    void activateById(Long id);
 }

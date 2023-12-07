@@ -6,6 +6,7 @@ const catDataFormId = "categoryDataForm";
 const catDataFormClearBtnId = "categoryClearBtn";
 const catTableUpdateBtnClassName = "catUpdateBtn";
 const catTableDeleteBtnClassName = "catDeleteBtn";
+const catTableActivateBtnClassName = "catActivateBtn";
 const catTableNextBtnId = "catNextPage";
 const catTablePreviousBtnId = "catPreviousPage";
 
@@ -17,6 +18,7 @@ const volDataFormId = "volumeDataForm";
 const volDataFormClearBtnId = "volumeClearBtn";
 const volTableUpdateBtnClassName = "volUpdateBtn";
 const volTableDeleteBtnClassName = "volDeleteBtn";
+const volTableActivateBtnClassName = "volActivateBtn";
 const volTableNextBtnId = "volNextPage";
 const volTablePreviousBtnId = "volPreviousPage";
 
@@ -69,6 +71,7 @@ if(catTableDiv != null){
             setListenerForDataUpdates(mutations, catFormDiv, catTableUpdateBtnClassName);
         }
         setListenerForDataDelete(mutations, catTableDiv, catTableDeleteBtnClassName);
+        setListenerForDataDelete(mutations, catTableDiv, catTableActivateBtnClassName);
     });
     const catTableObserverConfig = {
         subtree : true,
@@ -125,6 +128,7 @@ if(volTableDiv != null){
             setListenerForDataUpdates(mutations, volFormDiv, volTableUpdateBtnClassName);
         }
         setListenerForDataDelete(mutations, volTableDiv, volTableDeleteBtnClassName);
+        setListenerForDataDelete(mutations, volTableDiv, volTableActivateBtnClassName);
     });
     const volTableObserverConfig = {
         subtree : true,

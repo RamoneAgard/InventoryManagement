@@ -16,7 +16,7 @@
                 <div class="col-auto">
                     <div class="form-check">
                         <input class="form-check-input" type="checkbox" value="true" name="deleted" id="filterDeleted">
-                        <label class="form-check-label" for="filterDeleted"> Filter Deleted </label>
+                        <label class="form-check-label" for="filterDeleted"> Filter Deleted Products </label>
                     </div>
                 </div>
             </div>
@@ -63,6 +63,15 @@
     </th:block>
 
     <th:block th:fragment="productTable">
+
+        <div th:if="${tableError}" class="row justify-content-center">
+            <div class="col-auto">
+                <div class="alert alert-danger" role="alert" id="tableErrorDiv">
+                    <span th:text="${tableError}"></span>
+                </div>
+            </div>
+        </div>
+
         <div class="row justify-content-center px-2">
             <div class="col-md d-flex overflow-scroll rounded-4 px-0">
                 <table class="table table-responsive table-striped">
@@ -117,7 +126,8 @@
                             <td th:unless="${prod.deleted}" sec:authorize="hasRole('ROLE_EDITOR')">
                                 <a class="updateBtn btn btn-outline-primary"
                                    th:link="@{__${@productController.PRODUCT_UPDATE_PATH}__(id=${prod.id})}">
-                                    Update</a></td>
+                                    Update</a>
+                            </td>
                             <td sec:authorize="hasRole('ROLE_ADMIN')">
                                 <a th:unless="${prod.deleted}"
                                    class="deleteBtn btn btn-outline-danger"

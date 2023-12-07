@@ -1,6 +1,7 @@
 package org.agard.InventoryManagement.ViewModels;
 
 import jakarta.persistence.ManyToOne;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import lombok.*;
@@ -18,6 +19,7 @@ public class OrderItemForm {
     private Long id;
 
     @NotNull
+    @Valid
     private ItemProduct product;
 
     @NotNull

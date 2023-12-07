@@ -1,5 +1,6 @@
 package org.agard.InventoryManagement.controllers;
 
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.agard.InventoryManagement.Exceptions.NotFoundException;
@@ -51,7 +52,6 @@ public class ReceivingOrderController {
     public String getOutOrdersPage(Model model){
 
         model.addAttribute("receivingOrderForm", new ReceivingOrderForm());
-        model.addAttribute("orders", orderService.filterOrderPage(null, null, null, null));
         model.addAttribute("categories", categoryService.getAllCategories());
         model.addAttribute("volumes", volumeService.getAllVolumes());
 
@@ -66,7 +66,13 @@ public class ReceivingOrderController {
             orderForm = new ReceivingOrderForm();
         }
         else {
-            orderForm = orderService.getFormById(id);
+            try{
+                orderForm = orderService.getFormById(id);
+            }
+            catch (NotFoundException e){
+                model.addAttribute("addError", e.getMessage());
+                orderForm = new ReceivingOrderForm();
+            }
         }
         model.addAttribute("receivingOrderForm", orderForm);
 
@@ -101,7 +107,13 @@ public class ReceivingOrderController {
                                      @RequestParam(name = "index") Integer index,
                                      Model model){
 
-        orderForm.getItems().remove(index.intValue());
+        try{
+            orderForm.getItems().remove(index.intValue());
+        }
+        catch (IndexOutOfBoundsException e){
+            model.addAttribute("addError", "Remove index is out of bounds");
+        }
+
         model.addAttribute("receivingOrderFrom", orderForm);
 
         return ViewNames.RECEIVING_ORDER_FORM_FRAGMENT;
@@ -110,6 +122,7 @@ public class ReceivingOrderController {
     @PostMapping(ORDER_UPDATE_PATH)
     public String processCreateOrUpdate(@Valid ReceivingOrderForm orderForm,
                                         BindingResult bindingResult,
+                                        HttpServletResponse response,
                                         Model model){
         System.out.println(orderForm);
         if(orderForm.getItems().size() < 1){
@@ -119,17 +132,16 @@ public class ReceivingOrderController {
             try{
                 orderService.saveOrder(orderForm);
                 model.addAttribute("receivingOrderForm", new ReceivingOrderForm());
+                response.setStatus(201);
             }
-            catch (StockException e){
+            catch (StockException | NotFoundException e){
                 model.addAttribute("addError", e.getMessage());
             }
         }
         else{
-            if(bindingResult.hasFieldErrors("supplier")){
-                model.addAttribute("addError",
-                        bindingResult.getFieldError("supplier").toString()
-                );
-            }
+            model.addAttribute("addError",
+                    bindingResult.getAllErrors().get(0).getDefaultMessage()
+            );
         }
         return ViewNames.RECEIVING_ORDER_FORM_FRAGMENT;
     }
@@ -145,6 +157,7 @@ public class ReceivingOrderController {
         return ViewNames.RECEIVING_ORDER_TABLE_FRAGMENT;
     }
 
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
     @GetMapping(ORDER_DELETE_PATH)
     public String deleteOrderById(@RequestParam Long id,
                                   @RequestParam(required = false, name = "contact") String supplierQuery,
@@ -153,7 +166,13 @@ public class ReceivingOrderController {
                                   @RequestParam(required = false) Integer pageSize,
                                   Model model){
 
-        orderService.deleteById(id);
+        try{
+            orderService.deleteById(id);
+        }
+        catch (StockException | NotFoundException e){
+            model.addAttribute("tableError", e.getMessage());
+        }
+
         addPageToModel(supplierQuery, createdBeforeQuery, pageNumber, pageSize, model);
 
         return ViewNames.RECEIVING_ORDER_TABLE_FRAGMENT;

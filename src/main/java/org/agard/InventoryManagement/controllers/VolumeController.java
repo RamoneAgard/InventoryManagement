@@ -27,10 +27,11 @@ public class VolumeController {
 
     public static final String VOLUME_DELETE_PATH = "/volumes/delete";
 
+    public static final String VOLUME_REACTIVATE_PATH = "/volumes/reactivate";
+
     private final VolumeService volumeService;
 
 
-    @PreAuthorize("hasRole('ROLE_EDITOR')")
     @RequestMapping(value = VOLUME_TABLE_PATH, method = {RequestMethod.GET, RequestMethod.POST})
     public String getVolumeTable(@RequestParam(required = false, name = "description") String descriptionQuery,
                                  @RequestParam(defaultValue = "0") Integer pageNumber,
@@ -42,7 +43,25 @@ public class VolumeController {
         return ViewNames.VOLUME_TABLE_FRAGMENT;
     }
 
-    @PreAuthorize("hasRole('ROLE_EDITOR')")
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @RequestMapping(value = VOLUME_TABLE_PATH, params = "deleted", method = {RequestMethod.GET, RequestMethod.POST})
+    public String getDeletedVolumeTable(@RequestParam(required = false, name = "description") String descriptionQuery,
+                                 @RequestParam(defaultValue = "0") Integer pageNumber,
+                                 @RequestParam(required = false) Integer pageSize,
+                                 @RequestParam(name = "deleted") Boolean deleted,
+                                 Model model){
+
+        if(deleted){
+            addDeletedPageToModel(descriptionQuery, pageNumber, pageSize, model);
+            return ViewNames.VOLUME_TABLE_FRAGMENT;
+        }
+
+        addPageToModel(descriptionQuery, pageNumber, pageSize, model);
+
+        return ViewNames.VOLUME_TABLE_FRAGMENT;
+    }
+
+
     @GetMapping(VOLUME_UPDATE_PATH)
     public String getVolumeUpdate(@RequestParam(required = false) Long id,
                                   Model model){
@@ -50,7 +69,14 @@ public class VolumeController {
         if(id == null){
             volume = new Volume();
         } else {
-            volume = volumeService.getById(id);
+            try{
+                volume = volumeService.getById(id);
+            }
+            catch (NotFoundException e){
+                model.addAttribute("addError", e.getMessage());
+                volume = new Volume();
+            }
+
         }
         model.addAttribute("volume", volume);
 
@@ -64,9 +90,19 @@ public class VolumeController {
                                         HttpServletResponse response,
                                         Model model){
         if(!bindingResult.hasErrors()){
-            volumeService.saveVolume(volume);
-            response.setStatus(201);
-            model.addAttribute("volume", new Volume());
+            try{
+                volumeService.saveVolume(volume);
+                response.setStatus(201);
+                model.addAttribute("volume", new Volume());
+            }
+            catch (NotFoundException e){
+                model.addAttribute("addError", e.getMessage());
+            }
+        }
+        else {
+            model.addAttribute("addError",
+                    bindingResult.getAllErrors().get(0).getDefaultMessage()
+            );
         }
 
         return ViewNames.VOLUME_UPDATE_FRAGMENT;
@@ -81,11 +117,38 @@ public class VolumeController {
                                    @RequestParam(required = false) Integer pageSize,
                                    Model model){
 
-        volumeService.deleteById(id);
+        try{
+            volumeService.deleteById(id);
+        }
+        catch (NotFoundException e){
+            model.addAttribute("tableError", e.getMessage());
+        }
+
         addPageToModel(descriptionQuery, pageNumber, pageSize, model);
 
         return ViewNames.VOLUME_TABLE_FRAGMENT;
     }
+
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @GetMapping(VOLUME_REACTIVATE_PATH)
+    public String reactivateVolumeById(@RequestParam Long id,
+                                   @RequestParam(required = false, name = "description") String descriptionQuery,
+                                   @RequestParam(defaultValue = "0") Integer pageNumber,
+                                   @RequestParam(required = false) Integer pageSize,
+                                   Model model){
+
+        try{
+            volumeService.activateById(id);
+        }
+        catch (NotFoundException e){
+            model.addAttribute("tableError", e.getMessage());
+        }
+
+        addDeletedPageToModel(descriptionQuery, pageNumber, pageSize, model);
+
+        return ViewNames.VOLUME_TABLE_FRAGMENT;
+    }
+
 
     private void addPageToModel(String description,
                                 Integer pageNumber,
@@ -98,4 +161,15 @@ public class VolumeController {
         model.addAttribute("descriptionQuery", description);
     }
 
+    private void addDeletedPageToModel(String description,
+                                       Integer pageNumber,
+                                       Integer pageSize,
+                                       Model model){
+
+        Page<Volume> volumePage = volumeService.filterDeletedVolumePage(description, pageNumber, pageSize);
+
+        model.addAttribute("volumePage", volumePage);
+        model.addAttribute("descriptionQuery", description);
+        model.addAttribute("deletedQuery", "true");
+    }
 }

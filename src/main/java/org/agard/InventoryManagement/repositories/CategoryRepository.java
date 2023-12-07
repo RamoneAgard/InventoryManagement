@@ -23,8 +23,17 @@ public interface CategoryRepository extends JpaRepository<Category, Long> {
             "(:name is null or UPPER(c.name) LIKE UPPER(concat('%', :name, '%')))")
     Page<Category> findAllByFilter(@Param("name") String name, Pageable pageable);
 
+    @Query("SELECT c from Category c WHERE c.deleted = true and" +
+            "(:name is null or UPPER(c.name) LIKE UPPER(concat('%', :name, '%')))")
+    Page<Category> findAllDeletedByFilter(@Param("name") String name, Pageable pageable);
+
     @Query("UPDATE Category c SET c.deleted=true WHERE c.id = :id")
     @Modifying
     @Transactional
     void softDeleteById(@Param("id") Long id);
+
+    @Query("UPDATE Category c SET c.deleted=false WHERE c.id = :id")
+    @Modifying
+    @Transactional
+    void reactivateById(@Param("id") Long id);
 }
