@@ -8,7 +8,7 @@
 <body>
 
 <th:block th:fragment="filterForm(page)"
-          th:with="url = ${page} == 'cat' ? @{__${@categoryController.CATEGORY_TABLE_PATH}__} : @{__${@volumeController.VOLUME_TABLE_PATH}__}
+          th:with="url = ${page} == 'cat' ? ${@categoryController.CATEGORY_TABLE_PATH} : ${@volumeController.VOLUME_TABLE_PATH}
                   , queryName = ${page} == 'cat' ? 'name' : 'description'
                   , queryLabel = ${page} == 'cat' ? 'Name' : 'Description'">
   <form class="form" th:id="${page} + 'FilterForm'"

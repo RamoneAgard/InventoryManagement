@@ -18,7 +18,8 @@
 
     <hr class="border border-primary rounded">
 
-    <div sec:authorize="hasRole('ROLE_EDITOR')" class="row mb-3" id="formContainer">
+    <div sec:authorize="hasRole(T(org.agard.InventoryManagement.config.UserRole).EDITOR.authority)"
+         class="row mb-3" id="formContainer">
       <th:block th:replace="~{fragments/product/product_update_form.html :: updateForm}"></th:block>
     </div>
 

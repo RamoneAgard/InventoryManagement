@@ -20,7 +20,7 @@ import java.util.Set;
 public class Volume {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @Column(unique = true)
@@ -47,13 +47,4 @@ public class Volume {
     @Builder.Default
     private boolean deleted = false;
 
-    public void addProduct(Product product){
-        this.products.add(product);
-    }
-
-    private void beforeDeletion(){
-        for(Product p : products){
-            p.dereferenceVolume();
-        }
-    }
 }

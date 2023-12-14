@@ -552,7 +552,8 @@ class OutgoingOrderControllerTest {
         assertEquals(mockOrderForm, orderForm);
         BindingResult bindingResult = (BindingResult) modelMap.getAttribute("org.springframework.validation.BindingResult.outgoingOrderForm");
         assertEquals(3, bindingResult.getErrorCount());
-        assertEquals(bindingResult.getAllErrors().get(0).getDefaultMessage(),
+        assertEquals(bindingResult.getFieldErrors().get(0).getField() +
+                        ": " + bindingResult.getFieldErrors().get(0).getDefaultMessage(),
                 modelMap.getAttribute("addError"));
         assertTrue(bindingResult.hasFieldErrors("receiver"));
         assertTrue(bindingResult.hasFieldErrors("items[0].quantity"));

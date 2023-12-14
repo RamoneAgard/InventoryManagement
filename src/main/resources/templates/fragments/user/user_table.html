@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="https://www.thymeleaf.org/thymeleaf-extras-springsecurity6">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+<th:block th:fragment="filterForm(userRoles)">
+    <form class="form" id="usersFilter"
+          th:action="${@userController.USERS_TABLE_PATH}"
+          method="post">
+        <div class="row g-3 justify-content-center">
+
+            <div class="col-md-6 col-lg-auto ">
+                <div class="input-group">
+                    <span class="input-group-text p-1">
+                        User Role
+                    </span>
+                    <select class="form-select" id="filterRoles" name="role">
+                        <option disabled selected>Select User Role</option>
+                        <option th:each="role : ${userRoles}" th:value="${role}" th:text="${role.name}">option</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="col col-lg-auto">
+                <div class="form-floating">
+                    <input class="form-control" id="filterName" type="text" name="lastName">
+                    <label for="filterName">Last Name</label>
+                </div>
+            </div>
+
+            <div class="col-3 col-lg-2">
+                <div class="form-floating">
+                    <input class="form-control" id="perPage" name="pageSize" type="number" placeholder="20" value="20"
+                           min="1" max="50">
+                    <label for="perPage"># Per Page</label>
+                </div>
+            </div>
+
+            <div class="col-auto d-flex flex-column justify-content-center">
+                <div class="d-flex justify-content-center mb-1"><button class="btn btn-primary" type="submit">Filter</button></div>
+                <div class="d-flex justify-content-center"><button class="btn btn-warning" type="reset">Reset</button></div>
+            </div>
+        </div>
+    </form>
+</th:block>
+
+<th:block th:fragment="usersTable">
+
+    <div th:if="${tableError}" class="row justify-content-center">
+        <div class="col-auto">
+            <div class="alert alert-danger" role="alert" id="tableErrorDiv">
+                <span th:text="${tableError}"></span>
+            </div>
+        </div>
+    </div>
+
+    <div class="row justify-content-center px-2">
+        <div class="col-md d-flex overflow-scroll rounded-4 px-0">
+            <table class="table table-responsive table-striped">
+                <thead class="table-dark">
+                <tr>
+                    <th class="text-nowrap">First Name</th>
+                    <th class="text-nowrap">Last Name</th>
+                    <th>Username</th>
+                    <th>Role</th>
+                    <th>Enabled</th>
+                    <th class="text-nowrap">Created Date</th>
+                    <th></th>
+                    <th></th>
+                    <th></th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="user : ${userPage.getContent()}" class="user-row">
+                    <td th:text="${user.firstName}">first name</td>
+                    <td th:text="${user.lastName}">last name</td>
+                    <td th:text="${user.username}">username</td>
+                    <td th:text="${user.role.name}">user role</td>
+                    <td th:text="${user.enabled} ? 'True' : 'False'">is enabled</td>
+                    <td th:text="${#temporals.format(user.createdDate, 'dd-MM-yyyy, HH:mm')}">created date</td>
+                    <td>
+                        <button th:if="${user.enabled}" class="btn btn-outline-warning text-nowrap enableBtn"
+                                th:link="@{__${@userController.USERS_ENABLE_PATH}__(id=${user.id}, enable=false)}">
+                            Disable User
+                        </button>
+                        <button th:unless="${user.enabled}" class="btn btn-outline-success text-nowrap enableBtn"
+                                th:link="@{__${@userController.USERS_ENABLE_PATH}__(id=${user.id}, enable=true)}">
+                            Enable User
+                        </button>
+                    </td>
+                    <td>
+                        <button class="updateBtn btn btn-outline-primary"
+                                th:link="@{__${@userController.USERS_UPDATE_PATH}__(id=${user.id})}">
+                            Update
+                        </button>
+                    </td>
+                    <td>
+                        <button class="deleteBtn btn btn-outline-danger"
+                                th:link="@{__${@userController.USERS_DELETE_PATH}__(
+                                                                        id=${user.id},
+                                                                        lastName=${lastNameQuery},
+                                                                        role=${roleQuery},
+                                                                        pageNumber=${userPage.getNumber()},
+                                                                        pageSize=${userPage.getSize()}
+                                                                        )}">
+                            Delete
+                        </button>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="row justify-content-center flex-column">
+        <div class="col">
+            <nav th:with="url = ${@userController.USERS_TABLE_PATH}">
+                <ul class="pagination justify-content-center mb-0">
+                    <li class="page-item"
+                        th:classappend="${userPage.hasPrevious()} == false ? |disabled|">
+                        <a class="page-link btn rounded-start rounded-end-0" id="previousPage"
+                           th:link="@{__${url}__(
+                                lastName=${lastNameQuery},
+                                role=${roleQuery},
+                                pageNumber=${userPage.getNumber()} - 1,
+                                pageSize=${userPage.getSize()}
+                                )}">
+                            Previous
+                        </a>
+                    </li>
+                    <li class="page-item"
+                        th:classappend="${userPage.hasNext()} == false ? |disabled|">
+                        <a class="page-link btn rounded-start-0 rounded-end" id="nextPage"
+                           th:link="@{__${url}__(
+                                lastName=${lastNameQuery},
+                                role=${roleQuery},
+                                pageNumber=${userPage.getNumber()} + 1,
+                                pageSize=${userPage.getSize()}
+                                )}">
+                            Next
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+        <div class="col d-flex justify-content-center">
+            <small th:text="|page | + ${userPage.getNumber() + 1} + | of | +  ${userPage.getTotalPages()}"></small>
+        </div>
+    </div>
+</th:block>
+</body>
+</html>

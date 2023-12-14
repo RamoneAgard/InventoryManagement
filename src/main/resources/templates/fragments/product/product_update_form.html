@@ -17,7 +17,7 @@
                 Create or Update Product
             </button>
             <button class="btn btn-outline-success" id="clearUpdate"
-               th:if="${productForm.id} != null" th:link="@{/products/update}">
+               th:if="${productForm.id} != null" th:link="${@productController.PRODUCT_UPDATE_PATH}">
                 Clear Update
             </button>
         </div>
@@ -26,9 +26,9 @@
     <div class="row justify-content-center">
         <div class="col-sm-10 col-lg-8">
             <div class="collapse p-1 bg-success-subtle rounded-3"
-                 th:classappend="${productForm.id} != null ? |show|"
+                 th:classappend="${productForm.id} != null or ${addError} ? |show|"
                  id="formCollapse">
-                <form class="form" id="dataForm" th:action="@{__${@productController.PRODUCT_UPDATE_PATH}__(id=${productForm.id})}" th:object="${productForm}" method="post">
+                <form class="form" id="dataForm" th:action="${@productController.PRODUCT_UPDATE_PATH}" th:object="${productForm}" method="post">
                     <div class="row justify-content-center">
                         <div class="col-auto">
                             <div th:if="${addError}" class="alert alert-danger" role="alert" id="addErrorDiv">
@@ -36,6 +36,7 @@
                             </div>
                         </div>
                     </div>
+                    <input type="hidden" th:field="*{id}" readonly hidden>
                     <div class="row">
                     <div class="col-md-6">
                         <div class="mb-2">
@@ -78,13 +79,13 @@
 
                     <div class="col-md-6">
                         <div class="mb-2">
-                            <label for="name" class="form-label">Cost $USD</label>
+                            <label for="cost" class="form-label">Cost $USD</label>
                             <span th:if="${#fields.hasErrors('cost')}" th:errors="*{cost}" class="text-danger"></span>
                             <input class="form-control" type="number" min="0" step="0.01" th:field="*{cost}" id="cost" placeholder="Cost $USD" required>
                         </div>
 
                         <div class="mb-2">
-                            <label class="form-label" for="name">Price $USD</label>
+                            <label class="form-label" for="price">Price $USD</label>
                             <span th:if="${#fields.hasErrors('price')}" th:errors="*{price}" class="text-danger"></span>
                             <input class="form-control" type="number" min="0" step="0.01" th:field="*{price}" id="price" placeholder="Price $USD" required>
                         </div>
@@ -96,7 +97,7 @@
                         </div>
 
                         <div class="mb-2">
-                            <label class="form-label" for="name">Stock Amount</label>
+                            <label class="form-label" for="stock">Stock Amount</label>
                             <span th:if="${#fields.hasErrors('stock')}" th:errors="*{stock}" class="text-danger"></span>
                             <input class="form-control" type="number" min="0" th:field="*{stock}" id="stock" placeholder="10" required>
                         </div>

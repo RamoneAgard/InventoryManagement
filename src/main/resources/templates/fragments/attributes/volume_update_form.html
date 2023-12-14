@@ -16,7 +16,7 @@
                 Create or Update Volume
             </button>
             <a class="btn btn-outline-success" id="volumeClearBtn"
-               th:if="${volume.id} != null" th:link="@{/volumes/update}">
+               th:if="${volume.id} != null" th:link="${@volumeController.VOLUME_UPDATE_PATH}">
                 Clear Update
             </a>
         </div>
@@ -25,10 +25,11 @@
     <div class="row justify-content-center">
         <div class="col-sm-5">
             <div class="collapse p-1 bg-success-subtle rounded-3"
-                 th:classappend="${volume.id} != null ? |show|"
+                 th:classappend="${volume.id} != null or ${addError} ? |show|"
                  id="volFormCollapse">
-                <form class="form" id="volumeDataForm" th:action="@{/volumes/update(id=${volume.id})}" method="post" th:object="${volume}">
+                <form class="form" id="volumeDataForm" th:action="${@volumeController.VOLUME_UPDATE_PATH}" method="post" th:object="${volume}">
 
+                    <input type="hidden" th:field="*{id}" hidden>
                     <div class="row justify-content-center">
                         <div class="col-auto">
                             <div th:if="${addError}" class="alert alert-danger" role="alert" id="addErrorDiv">

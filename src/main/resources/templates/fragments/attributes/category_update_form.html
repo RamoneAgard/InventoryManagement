@@ -16,7 +16,7 @@
         Create or Update Category
       </button>
       <a class="btn btn-outline-success" id="categoryClearBtn"
-         th:if="${category.id} != null" th:link="@{/categories/update}">
+         th:if="${category.id} != null" th:link="${@categoryController.CATEGORY_UPDATE_PATH}">
         Clear Update
       </a>
     </div>
@@ -25,10 +25,11 @@
   <div class="row justify-content-center">
     <div class="col-sm-5">
       <div class="collapse p-1 bg-success-subtle rounded-3"
-           th:classappend="${category.id} != null ? |show|"
+           th:classappend="${category.id} != null or ${addError} ? |show|"
            id="catFormCollapse">
-        <form class="form" id="categoryDataForm" th:action="@{/categories/update(id=${category.id})}" method="post" th:object="${category}">
+        <form class="form" id="categoryDataForm" th:action="${@categoryController.CATEGORY_UPDATE_PATH}" method="post" th:object="${category}">
 
+          <input type="hidden" th:field="*{id}" hidden>
           <div class="row justify-content-center">
             <div class="col-auto">
               <div th:if="${addError}" class="alert alert-danger" role="alert" id="addErrorDiv">

@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="https://www.thymeleaf.org/thymeleaf-extras-springsecurity6">
+<head>
+    <meta charset="UTF-8">
+    <title>Update Users</title>
+</head>
+<body>
+<h1>Create or Update User</h1>
+
+<div th:fragment="updateForm" class="col">
+    <div class="row justify-content-center my-2">
+        <div class="col-sm-auto d-flex justify-content-evenly">
+            <button class="btn btn-success" type="button" data-bs-toggle="collapse" data-bs-target="#formCollapse"
+                    th:aria-expanded="${userForm.id} != null" aria-controls="formCollapse"
+                    th:text="${userForm.id} == null ? |Create User| : |Update User|">
+                Create or Update User
+            </button>
+            <button class="btn btn-outline-success" id="clearUpdate"
+                    th:if="${userForm.id} != null" th:link="${@userController.USERS_UPDATE_PATH}">
+                Clear Update
+            </button>
+        </div>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-sm-10 col-lg-8">
+            <div class="collapse p-1 bg-success-subtle rounded-3"
+                 th:classappend="${userForm.id} != null or ${addError} ? |show|"
+                 id="formCollapse">
+                <form class="form" id="dataForm" th:action="${@userController.USERS_UPDATE_PATH}" th:object="${userForm}" method="post">
+                    <div class="row justify-content-center">
+                        <div class="col-auto">
+                            <div th:if="${addError}" class="alert alert-danger" role="alert" id="addErrorDiv">
+                                <span th:text="${addError}"></span>
+                            </div>
+                        </div>
+                    </div>
+                    <input type="hidden" th:field="*{id}" readonly hidden>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-2">
+                                <label for="firstName" class="form-label">First Name</label>
+                                <span th:if="${#fields.hasErrors('firstName')}" th:errors="*{firstName}" class="text-danger"></span>
+                                <input class="form-control" type="text" minlength="1" maxlength="30" th:field="*{firstName}"
+                                       id="firstName" title="First Name, no leading or trailing whitespaces" pattern=^[\S]+(\s?[\S]+)*$ placeholder="John" required>
+                            </div>
+                            <div class="mb-2">
+                                <label for="lastName" class="form-label">Last Name</label>
+                                <span th:if="${#fields.hasErrors('lastName')}" th:errors="*{lastName}" class="text-danger"></span>
+                                <input class="form-control" type="text" minlength="1" maxlength="30" th:field="*{lastName}"
+                                       id="lastName" title="Last Name, no leading or trailing whitespaces" pattern=^[\S]+(\s?[\S]+)*$ placeholder="Doe" required>
+                            </div>
+
+                            <div class="mb-2">
+                                <label for="username" class="form-label">Username</label>
+                                <span th:if="${#fields.hasErrors('username')}" th:errors="*{username}" class="text-danger"></span>
+                                <input class="form-control" type="text" minlength="3" maxlength="15" th:field="*{username}"
+                                       id="username" title="Username starting with or without '@', including '.' , '-', '_'" pattern=[@]?[\w]+((\.|-)[\w]+)* placeholder="@j.doe" required>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <div class="mb-2">
+                                <label class="form-label" for="role">User Role</label>
+                                <select class="form-select"  th:field="*{role}" id="role" name="role" required>
+                                    <option th:each="role : ${userRoles}" th:value="${role}" th:text="${role.name}" th:selected="${role} == *{role}">Option</option>
+                                </select>
+                            </div>
+
+                            <div class="mb-2">
+                                <label for="password" class="form-label">Password</label>
+                                <span th:if="${#fields.hasErrors('password')}" th:errors="*{password}" class="text-danger"></span>
+                                <input class="form-control" type="password" minlength="5" maxlength="20" th:field="*{password}"
+                                       id="password" title="Password, between 5-20 characters no spaces" pattern=[\S]+>
+                            </div>
+
+                            <div class="mb-2">
+                                <label for="password2" class="form-label">Password Confirmation</label>
+                                <span th:if="${#fields.hasErrors('passwordConfirm')}" th:errors="*{passwordConfirm}" class="text-danger"></span>
+                                <input class="form-control" type="password" minlength="5" maxlength="20" th:field="*{passwordConfirm}"
+                                       id="password2" title="Password Confirmation, between 5-20 characters no spaces" pattern=[\S]+>
+                            </div>
+                        </div>
+
+                        <div class="col-12 d-flex justify-content-center">
+                            <button class="btn btn-primary" type="submit" id="submit">Submit</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

@@ -53,7 +53,7 @@
                             <span class="input-group-text">
                                 Supplier
                             </span>
-                            <input class="form-control" type="text" th:field="*{supplier}" placeholder="Supplying Company" maxlength="250" required>
+                            <input class="form-control" type="text" th:field="*{supplier}" pattern=^[\S]+(\s?[\S]+)*$  placeholder="Supplying Company" maxlength="250" required>
                         </div>
                     </div>
                 </div>

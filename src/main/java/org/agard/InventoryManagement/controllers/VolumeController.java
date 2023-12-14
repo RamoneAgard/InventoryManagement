@@ -4,7 +4,10 @@ package org.agard.InventoryManagement.controllers;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.agard.InventoryManagement.Exceptions.ItemCreationException;
 import org.agard.InventoryManagement.Exceptions.NotFoundException;
+import org.agard.InventoryManagement.annotations.IsAdmin;
+import org.agard.InventoryManagement.annotations.IsEditor;
 import org.agard.InventoryManagement.domain.Category;
 import org.agard.InventoryManagement.domain.Volume;
 import org.agard.InventoryManagement.service.VolumeService;
@@ -18,16 +21,18 @@ import org.springframework.web.bind.annotation.*;
 
 @Controller
 @RequiredArgsConstructor
-@PreAuthorize("hasRole('ROLE_EDITOR')")
+@IsEditor
 public class VolumeController {
 
-    public static final String VOLUME_TABLE_PATH = "/volumes/table";
+    public static final String VOLUME_BASE_PATH = "/volumes";
 
-    public static final String VOLUME_UPDATE_PATH = "/volumes/update";
+    public static final String VOLUME_TABLE_PATH = VOLUME_BASE_PATH + "/table";
 
-    public static final String VOLUME_DELETE_PATH = "/volumes/delete";
+    public static final String VOLUME_UPDATE_PATH = VOLUME_BASE_PATH + "/update";
 
-    public static final String VOLUME_REACTIVATE_PATH = "/volumes/reactivate";
+    public static final String VOLUME_DELETE_PATH = VOLUME_BASE_PATH + "/delete";
+
+    public static final String VOLUME_REACTIVATE_PATH = VOLUME_BASE_PATH + "/reactivate";
 
     private final VolumeService volumeService;
 
@@ -43,7 +48,7 @@ public class VolumeController {
         return ViewNames.VOLUME_TABLE_FRAGMENT;
     }
 
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @IsAdmin
     @RequestMapping(value = VOLUME_TABLE_PATH, params = "deleted", method = {RequestMethod.GET, RequestMethod.POST})
     public String getDeletedVolumeTable(@RequestParam(required = false, name = "description") String descriptionQuery,
                                  @RequestParam(defaultValue = "0") Integer pageNumber,
@@ -95,13 +100,17 @@ public class VolumeController {
                 response.setStatus(201);
                 model.addAttribute("volume", new Volume());
             }
-            catch (NotFoundException e){
+            catch (NotFoundException | ItemCreationException e){
                 model.addAttribute("addError", e.getMessage());
+            }
+            catch (RuntimeException e){
+                model.addAttribute("addError", "Something went wrong, reload and try again");
             }
         }
         else {
             model.addAttribute("addError",
-                    bindingResult.getAllErrors().get(0).getDefaultMessage()
+                    bindingResult.getFieldErrors().get(0).getField() + ": " +
+                            bindingResult.getFieldErrors().get(0).getDefaultMessage()
             );
         }
 
@@ -109,7 +118,7 @@ public class VolumeController {
     }
 
 
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @IsAdmin
     @GetMapping(VOLUME_DELETE_PATH)
     public String deleteVolumeById(@RequestParam Long id,
                                    @RequestParam(required = false, name = "description") String descriptionQuery,
@@ -129,7 +138,7 @@ public class VolumeController {
         return ViewNames.VOLUME_TABLE_FRAGMENT;
     }
 
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @IsAdmin
     @GetMapping(VOLUME_REACTIVATE_PATH)
     public String reactivateVolumeById(@RequestParam Long id,
                                    @RequestParam(required = false, name = "description") String descriptionQuery,

@@ -18,9 +18,10 @@ import java.util.Set;
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
+@Table(name = "category")
 public class Category {
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @Column(unique = true)
@@ -42,15 +43,4 @@ public class Category {
     @Builder.Default
     private boolean deleted = false;
 
-    public void addProduct(Product product){
-        //System.out.println("adding product");
-        this.products.add(product);
-    }
-
-    @PreRemove
-    private void beforeDeletion(){
-        for(Product p : products){
-            p.dereferenceCategory();
-        }
-    }
 }

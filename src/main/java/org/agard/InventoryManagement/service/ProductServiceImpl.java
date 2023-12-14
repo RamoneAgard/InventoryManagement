@@ -1,13 +1,16 @@
 package org.agard.InventoryManagement.service;
 
+import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.agard.InventoryManagement.Exceptions.ItemCreationException;
 import org.agard.InventoryManagement.Exceptions.NotFoundException;
 import org.agard.InventoryManagement.ViewModels.ItemProduct;
 import org.agard.InventoryManagement.ViewModels.ProductForm;
 import org.agard.InventoryManagement.domain.Product;
 import org.agard.InventoryManagement.mappers.ProductMapper;
 import org.agard.InventoryManagement.repositories.ProductRepository;
+import org.hibernate.exception.ConstraintViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -19,7 +22,7 @@ import java.util.List;
 
 @RequiredArgsConstructor
 @Service
-public class ProductServiceImpl implements ProductService {
+public class ProductServiceImpl implements ProductService, PagingService {
 
     private final ProductRepository productRepository;
 
@@ -29,25 +32,8 @@ public class ProductServiceImpl implements ProductService {
 
     private final ProductMapper productMapper;
 
-    private final Integer DEFAULT_PAGE_SIZE = 20;
-
-    private final Integer MAX_PAGE_SIZE = 50;
-
-    //Private method to construct page requests from repository based on which page and how big
-    private PageRequest buildPageRequest(Integer pageNumber, Integer pageSize){
-
-        if(pageNumber == null || pageNumber < 0){
-            pageNumber = 0;
-        }
-
-        if(pageSize == null || (pageSize < 1 || pageSize > MAX_PAGE_SIZE)){
-            pageSize = DEFAULT_PAGE_SIZE;
-        }
-
-        Sort defaultSort = Sort.by("category.name").and(Sort.by("volume.valueCode"));
-
-        return PageRequest.of(pageNumber, pageSize, defaultSort);
-    }
+    private final Sort defaultSort = Sort.by("category.name")
+            .and(Sort.by("volume.valueCode"));
 
 
     /**
@@ -57,7 +43,7 @@ public class ProductServiceImpl implements ProductService {
      */
     @Override
     public Page<Product> getDefaultProductList(Integer pageNumber, Integer pageSize) {
-        PageRequest pageRequest = buildPageRequest(pageNumber, pageSize);
+        PageRequest pageRequest = buildPageRequest(pageNumber, pageSize, defaultSort);
         return productRepository.findAll(pageRequest);
     }
 
@@ -73,7 +59,7 @@ public class ProductServiceImpl implements ProductService {
     @Override
     public Page<Product> filterProductPage(String name, List<Long> categories, List<Long> volumes, Integer pageNumber, Integer pageSize) {
 
-        PageRequest pageRequest = buildPageRequest(pageNumber, pageSize);
+        PageRequest pageRequest = buildPageRequest(pageNumber, pageSize, defaultSort);
 
         if(!StringUtils.hasText(name)){
             name = null;
@@ -91,7 +77,7 @@ public class ProductServiceImpl implements ProductService {
     @Override
     public Page<Product> filterDeletedProductsPage(String name, List<Long> categories, List<Long> volumes, Integer pageNumber, Integer pageSize) {
 
-        PageRequest pageRequest = buildPageRequest(pageNumber, pageSize);
+        PageRequest pageRequest = buildPageRequest(pageNumber, pageSize, defaultSort);
 
         if(!StringUtils.hasText(name)){
             name = null;
@@ -111,6 +97,7 @@ public class ProductServiceImpl implements ProductService {
      * @param formToSave the Product to save to database, new or existing
      */
     @Override
+    @Transactional
     public void saveProduct(@Valid ProductForm formToSave) {
         Product productToSave;
         if(formToSave.getId() == null){
@@ -129,7 +116,17 @@ public class ProductServiceImpl implements ProductService {
         productToSave.setUnitSize(formToSave.getUnitSize());
         productToSave.setStock(formToSave.getStock());
 
-        productRepository.save(productToSave);
+        try{
+            productRepository.save(productToSave);
+        }
+        catch (RuntimeException e){
+            String message = "Something went wrong saving this product";
+            if(e.getCause() instanceof ConstraintViolationException){
+                message = "Product upc and item-code must be unique";
+            }
+            throw new ItemCreationException(message);
+        }
+
     }
 
     @Override

@@ -3,12 +3,16 @@ package org.agard.InventoryManagement.controllers;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.agard.InventoryManagement.Exceptions.ItemCreationException;
 import org.agard.InventoryManagement.Exceptions.NotFoundException;
+import org.agard.InventoryManagement.annotations.IsAdmin;
+import org.agard.InventoryManagement.annotations.IsEditor;
 import org.agard.InventoryManagement.domain.Category;
 import org.agard.InventoryManagement.domain.Volume;
 import org.agard.InventoryManagement.service.CategoryService;
 import org.agard.InventoryManagement.service.VolumeService;
 import org.agard.InventoryManagement.util.ViewNames;
+import org.hibernate.exception.ConstraintViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.security.access.annotation.Secured;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -21,14 +25,15 @@ import java.util.List;
 
 @Controller
 @RequiredArgsConstructor
-@PreAuthorize("hasRole('ROLE_EDITOR')")
+@IsEditor
 public class CategoryController {
 
     public static final String ATTRIBUTE_PATH = "/attributes";
-    public static final String CATEGORY_TABLE_PATH = "/categories/table";
-    public static final String CATEGORY_UPDATE_PATH = "/categories/update";
-    public static final String CATEGORY_DELETE_PATH = "/categories/delete";
-    public static final String CATEGORY_REACTIVATE_PATH = "/categories/reactivate";
+    public static final String CATEGORY_BASE_PATH = "/categories";
+    public static final String CATEGORY_TABLE_PATH = CATEGORY_BASE_PATH + "/table";
+    public static final String CATEGORY_UPDATE_PATH = CATEGORY_BASE_PATH + "/update";
+    public static final String CATEGORY_DELETE_PATH = CATEGORY_BASE_PATH + "/delete";
+    public static final String CATEGORY_REACTIVATE_PATH = CATEGORY_BASE_PATH + "/reactivate";
 
     private final CategoryService categoryService;
 
@@ -55,7 +60,7 @@ public class CategoryController {
     }
 
 
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @IsAdmin
     @RequestMapping(value = CATEGORY_TABLE_PATH, params = "deleted", method = {RequestMethod.GET, RequestMethod.POST})
     public String getDeletedCategoryTable(@RequestParam(required = false, name = "name") String nameQuery,
                                    @RequestParam(defaultValue = "0") Integer pageNumber,
@@ -105,20 +110,24 @@ public class CategoryController {
                 response.setStatus(201);
                 model.addAttribute("category", new Category());
             }
-            catch (NotFoundException e){
+            catch (NotFoundException | ItemCreationException e){
                 model.addAttribute("addError", e.getMessage());
+            }
+            catch (RuntimeException e){
+                model.addAttribute("addError", "Something went wrong, reload and try again");
             }
         }
         else {
             model.addAttribute("addError",
-                    bindingResult.getAllErrors().get(0).getDefaultMessage()
+                    bindingResult.getFieldErrors().get(0).getField() + ": " +
+                            bindingResult.getFieldErrors().get(0).getDefaultMessage()
             );
         }
 
         return ViewNames.CATEGORY_UPDATE_FRAGMENT;
     }
 
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @IsAdmin
     @GetMapping(CATEGORY_DELETE_PATH)
     public String deleteCategoryById(@RequestParam Long id,
                                      @RequestParam(required = false, name = "name") String nameQuery,
@@ -138,7 +147,7 @@ public class CategoryController {
         return ViewNames.CATEGORY_TABLE_FRAGMENT;
     }
 
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @IsAdmin
     @GetMapping(CATEGORY_REACTIVATE_PATH)
     public String reactivateCategoryById(@RequestParam Long id,
                                         @RequestParam(required = false, name = "name") String nameQuery,

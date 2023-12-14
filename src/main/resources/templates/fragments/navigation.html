@@ -12,13 +12,15 @@
                 Inventory Dashboard
             </a>
 
-            <button sec:authorize="hasRole('ROLE_USER')" class="navbar-toggler me-auto" type="button"
+            <button sec:authorize="hasRole(T(org.agard.InventoryManagement.config.UserRole).USER.authority)"
+                    class="navbar-toggler me-auto" type="button"
                     data-bs-toggle="collapse" data-bs-target="#navbarContent"
                     aria-controls="navbarContent" aria-expanded="true">
                 <span class="navbar-toggler-icon"></span>
             </button>
 
-            <div sec:authorize="hasRole('ROLE_USER')" class="collapse navbar-collapse" id="navbarContent">
+            <div sec:authorize="hasRole(T(org.agard.InventoryManagement.config.UserRole).USER.authority)"
+                 class="collapse navbar-collapse" id="navbarContent">
                 <ul class="navbar-nav">
                     <li class="nav-item m-2 p-1 border border-success-subtle rounded-3 d-flex justify-content-center">
                         <a th:class="nav-link"
@@ -46,7 +48,7 @@
                         </ul>
                     </li>
 
-                    <li sec:authorize="hasRole('ROLE_EDITOR')"
+                    <li sec:authorize="hasRole(T(org.agard.InventoryManagement.config.UserRole).EDITOR.authority)"
                         class="nav-item m-2 p-1 border border-success-subtle rounded-3 d-flex justify-content-center">
                         <a th:class="nav-link"
                            th:classappend="${nowActive} == 'Attributes'? |active|"
@@ -54,11 +56,11 @@
                             Attributes</a>
                     </li>
 
-                    <li sec:authorize="hasRole('ROLE_ADMIN')"
+                    <li sec:authorize="hasRole(T(org.agard.InventoryManagement.config.UserRole).ADMIN.authority)"
                         class="nav-item m-2 p-1 border border-success-subtle rounded-3 d-flex justify-content-center">
                         <a th:class="nav-link"
                            th:classappend="${nowActive} == 'Users'? |active|"
-                           th:href="${@categoryController.ATTRIBUTE_PATH}">
+                           th:href="${@userController.USERS_PATH}">
                             Users</a>
                     </li>
                 </ul>

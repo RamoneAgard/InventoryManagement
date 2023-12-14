@@ -2,6 +2,7 @@ package org.agard.InventoryManagement.service;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.agard.InventoryManagement.Exceptions.ItemCreationException;
 import org.agard.InventoryManagement.Exceptions.NotFoundException;
 import org.agard.InventoryManagement.Exceptions.StockException;
 import org.agard.InventoryManagement.ViewModels.OrderItemForm;
@@ -18,7 +19,7 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-public class OrderItemServiceImpl implements OrderItemService {
+public class OrderItemServiceImpl implements OrderItemService{
 
     private final OrderItemRepository itemRepository;
 
@@ -80,7 +81,13 @@ public class OrderItemServiceImpl implements OrderItemService {
         itemToSave.setQuantity(orderItemForm.getQuantity());
         itemToSave.setPrice(orderItemForm.getPrice());
 
-        return itemRepository.save(itemToSave);
+        try{
+            return itemRepository.save(itemToSave);
+        }
+        catch (RuntimeException e){
+            throw new ItemCreationException("Something went wrong saving this order line");
+        }
+
     }
 
     @Override

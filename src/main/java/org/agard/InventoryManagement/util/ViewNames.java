@@ -17,6 +17,10 @@ public final class ViewNames {
     public static final String RECEIVING_ORDER_VIEW = "receiving_orders_page";
     public static final String RECEIVING_ORDER_FORM_FRAGMENT = "fragments/orders/receiving_order_form.html :: orderForm";
     public static final String RECEIVING_ORDER_TABLE_FRAGMENT = "fragments/orders/order_table.html :: orderTable(page='in')";
+    public static final String USER_VIEW = "users_page.html";
+    public static final String USER_UPDATE_FRAGMENT = "fragments/user/user_update_form.html :: updateForm";
+
+    public static final String USER_TABLE_FRAGMENT = "fragments/user/user_table.html :: usersTable";
 
 
     private ViewNames(){}

@@ -2,9 +2,11 @@ package org.agard.InventoryManagement.BootstrapData;
 
 import lombok.RequiredArgsConstructor;
 import org.agard.InventoryManagement.ViewModels.OutgoingOrderForm;
+import org.agard.InventoryManagement.config.UserRole;
 import org.agard.InventoryManagement.domain.*;
 import org.agard.InventoryManagement.repositories.*;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
@@ -20,12 +22,21 @@ public final class BootStrapData implements CommandLineRunner {
 
     private final VolumeRepository volumeRepository;
 
+    private final UserRepository userRepository;
+
+    private final PasswordEncoder encoder;
+
     private final OutgoingOrderRepository outgoingOrderRepository;
     private final OrderItemRepository orderItemRepository;
 
     @Override
     public void run(String... args) throws Exception {
-        loadProducts();
+        if(productRepository.count() == 0){
+            loadProducts();
+        }
+        if(userRepository.count() == 0){
+            loadUser();
+        }
     }
 
     private void loadProducts(){
@@ -134,6 +145,26 @@ public final class BootStrapData implements CommandLineRunner {
 
         outgoingOrderRepository.save(outOrder1);
 
+    }
+
+    private void loadUser(){
+        User adminUser = User.builder()
+                .username("admin")
+                .password(encoder.encode("password"))
+                .firstName("John")
+                .lastName("Bossy")
+                .role(UserRole.ADMIN.name)
+                .build();
+
+        User editorUser = User.builder()
+                .username("editor")
+                .password(encoder.encode("password"))
+                .firstName("Eddy")
+                .lastName("Torri")
+                .role(UserRole.EDITOR.name)
+                .build();
+
+        userRepository.saveAll(Arrays.asList(adminUser, editorUser));
     }
 
 }

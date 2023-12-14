@@ -3,10 +3,13 @@ package org.agard.InventoryManagement.controllers;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.agard.InventoryManagement.Exceptions.ItemCreationException;
 import org.agard.InventoryManagement.Exceptions.NotFoundException;
 import org.agard.InventoryManagement.Exceptions.StockException;
 import org.agard.InventoryManagement.ViewModels.OrderItemForm;
 import org.agard.InventoryManagement.ViewModels.ReceivingOrderForm;
+import org.agard.InventoryManagement.annotations.IsAdmin;
+import org.agard.InventoryManagement.annotations.IsUser;
 import org.agard.InventoryManagement.domain.ReceivingOrder;
 import org.agard.InventoryManagement.service.CategoryService;
 import org.agard.InventoryManagement.service.OrderItemService;
@@ -25,20 +28,20 @@ import java.util.List;
 
 @Controller
 @RequiredArgsConstructor
-@PreAuthorize("hasRole('ROLE_USER')")
+@IsUser
 public class ReceivingOrderController {
 
     public static final String ORDER_PAGE_PATH = "/inorders";
 
-    public static final String ORDER_UPDATE_PATH = "/inorders/update";
+    public static final String ORDER_UPDATE_PATH = ORDER_PAGE_PATH + "/update";
 
-    public static final String ORDER_ADD_FORM_ITEM = "/inorders/update/add";
+    public static final String ORDER_ADD_FORM_ITEM = ORDER_PAGE_PATH + "/update/add";
 
-    public static final String ORDER_REMOVE_FORM_ITEM = "/inorders/update/remove";
+    public static final String ORDER_REMOVE_FORM_ITEM = ORDER_PAGE_PATH + "/update/remove";
 
-    public static final String ORDER_TABLE_PATH = "/inorders/table";
+    public static final String ORDER_TABLE_PATH = ORDER_PAGE_PATH + "/table";
 
-    public static final String ORDER_DELETE_PATH = "/inorders/delete";
+    public static final String ORDER_DELETE_PATH = ORDER_PAGE_PATH + "/delete";
 
     private final ReceivingOrderService orderService;
 
@@ -96,7 +99,6 @@ public class ReceivingOrderController {
             model.addAttribute("addError", e.getMessage());
         }
 
-        System.out.println(orderForm);
         model.addAttribute("receivingOrderForm", orderForm);
 
         return ViewNames.RECEIVING_ORDER_FORM_FRAGMENT;
@@ -124,7 +126,7 @@ public class ReceivingOrderController {
                                         BindingResult bindingResult,
                                         HttpServletResponse response,
                                         Model model){
-        System.out.println(orderForm);
+
         if(orderForm.getItems().size() < 1){
             model.addAttribute("addError", "Cannot create order with zero items!");
         }
@@ -134,13 +136,18 @@ public class ReceivingOrderController {
                 model.addAttribute("receivingOrderForm", new ReceivingOrderForm());
                 response.setStatus(201);
             }
-            catch (StockException | NotFoundException e){
+            catch (StockException | NotFoundException | ItemCreationException e){
                 model.addAttribute("addError", e.getMessage());
+
+            }
+            catch (RuntimeException e){
+                model.addAttribute("addError", "Something went wrong, reload and try again");
             }
         }
         else{
             model.addAttribute("addError",
-                    bindingResult.getAllErrors().get(0).getDefaultMessage()
+                    bindingResult.getFieldErrors().get(0).getField() + ": " +
+                            bindingResult.getFieldErrors().get(0).getDefaultMessage()
             );
         }
         return ViewNames.RECEIVING_ORDER_FORM_FRAGMENT;
@@ -157,7 +164,7 @@ public class ReceivingOrderController {
         return ViewNames.RECEIVING_ORDER_TABLE_FRAGMENT;
     }
 
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @IsAdmin
     @GetMapping(ORDER_DELETE_PATH)
     public String deleteOrderById(@RequestParam Long id,
                                   @RequestParam(required = false, name = "contact") String supplierQuery,

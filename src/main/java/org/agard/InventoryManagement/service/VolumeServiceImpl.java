@@ -1,9 +1,12 @@
 package org.agard.InventoryManagement.service;
 
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.agard.InventoryManagement.Exceptions.ItemCreationException;
 import org.agard.InventoryManagement.Exceptions.NotFoundException;
 import org.agard.InventoryManagement.domain.Volume;
 import org.agard.InventoryManagement.repositories.VolumeRepository;
+import org.hibernate.exception.ConstraintViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -15,29 +18,12 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-public class VolumeServiceImpl implements VolumeService {
+public class VolumeServiceImpl implements VolumeService, PagingService {
 
     private final VolumeRepository volumeRepository;
 
-    private final Integer DEFAULT_PAGE_SIZE = 20;
-
-    private final Integer MAX_PAGE_SIZE = 50;
-
     private final Sort defaultSort = Sort.by("valueCode");
 
-
-    private PageRequest buildPageRequest(Integer pageNumber, Integer pageSize){
-
-        if(pageNumber == null || pageNumber < 0){
-            pageNumber = 0;
-        }
-
-        if(pageSize == null || (pageSize < 1 || pageSize > MAX_PAGE_SIZE)){
-            pageSize = DEFAULT_PAGE_SIZE;
-        }
-
-        return PageRequest.of(pageNumber, pageSize, defaultSort);
-    }
 
     @Override
     public List<Volume> getAllVolumes() {
@@ -47,7 +33,7 @@ public class VolumeServiceImpl implements VolumeService {
     @Override
     public Page<Volume> filterVolumePage(String description, Integer pageNumber, Integer pageSize) {
 
-        PageRequest pageRequest = buildPageRequest(pageNumber, pageSize);
+        PageRequest pageRequest = buildPageRequest(pageNumber, pageSize, defaultSort);
 
         if(!StringUtils.hasText(description)){
             description = null;
@@ -59,7 +45,7 @@ public class VolumeServiceImpl implements VolumeService {
     @Override
     public Page<Volume> filterDeletedVolumePage(String description, Integer pageNumber, Integer pageSize) {
 
-        PageRequest pageRequest = buildPageRequest(pageNumber, pageSize);
+        PageRequest pageRequest = buildPageRequest(pageNumber, pageSize, defaultSort);
 
         if(!StringUtils.hasText(description)){
             description = null;
@@ -77,8 +63,18 @@ public class VolumeServiceImpl implements VolumeService {
     }
 
     @Override
+    @Transactional
     public void saveVolume(Volume volume) {
-        volumeRepository.save(volume);
+        try{
+            volumeRepository.save(volume);
+        }
+        catch (RuntimeException e){
+            String message = "Something went wrong saving this volume";
+            if(e.getCause() instanceof ConstraintViolationException){
+                message = "Volume descriptions must be unique";
+            }
+            throw new ItemCreationException(message);
+        }
     }
 
     @Override

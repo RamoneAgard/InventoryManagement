@@ -1,10 +1,13 @@
 package org.agard.InventoryManagement.service;
 
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.agard.InventoryManagement.Exceptions.ItemCreationException;
 import org.agard.InventoryManagement.Exceptions.NotFoundException;
 import org.agard.InventoryManagement.domain.Category;
 import org.agard.InventoryManagement.domain.Product;
 import org.agard.InventoryManagement.repositories.CategoryRepository;
+import org.hibernate.exception.ConstraintViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -16,29 +19,11 @@ import java.util.Set;
 
 @RequiredArgsConstructor
 @Service
-public class CategoryServiceImpl implements CategoryService {
+public class CategoryServiceImpl implements CategoryService, PagingService {
 
     private final CategoryRepository categoryRepository;
 
-    private final Integer DEFAULT_PAGE_SIZE = 20;
-
-    private final Integer MAX_PAGE_SIZE = 50;
-
     private final Sort defaultSort = Sort.by("name");
-
-
-    private PageRequest buildPageRequest(Integer pageNumber, Integer pageSize){
-
-        if(pageNumber == null || pageNumber < 0){
-            pageNumber = 0;
-        }
-
-        if(pageSize == null || (pageSize < 1 || pageSize > MAX_PAGE_SIZE)){
-            pageSize = DEFAULT_PAGE_SIZE;
-        }
-
-        return PageRequest.of(pageNumber, pageSize, defaultSort);
-    }
 
 
     @Override
@@ -49,7 +34,7 @@ public class CategoryServiceImpl implements CategoryService {
     @Override
     public Page<Category> filterCategoryPage(String name, Integer pageNumber, Integer pageSize) {
 
-        PageRequest pageRequest = buildPageRequest(pageNumber, pageSize);
+        PageRequest pageRequest = buildPageRequest(pageNumber, pageSize, defaultSort);
 
         if(!StringUtils.hasText(name)){
             name = null;
@@ -61,7 +46,7 @@ public class CategoryServiceImpl implements CategoryService {
     @Override
     public Page<Category> filterDeletedCategoryPage(String name, Integer pageNumber, Integer pageSize) {
 
-        PageRequest pageRequest =  buildPageRequest(pageNumber, pageSize);
+        PageRequest pageRequest =  buildPageRequest(pageNumber, pageSize, defaultSort);
 
         if(!StringUtils.hasText(name)){
             name = null;
@@ -88,8 +73,18 @@ public class CategoryServiceImpl implements CategoryService {
     }
 
     @Override
+    @Transactional
     public void saveCategory(Category category) {
-        categoryRepository.save(category);
+        try{
+            categoryRepository.save(category);
+        }
+        catch (RuntimeException e){
+            String message = "Something went wrong saving this category";
+            if(e.getCause() instanceof ConstraintViolationException){
+                message = "Category names must be unique";
+            }
+            throw new ItemCreationException(message);
+        }
     }
 
 

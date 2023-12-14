@@ -28,7 +28,7 @@
                     <th>Number of Products</th>
                     <th>Creation Date</th>
                     <th th:unless="${deletedQuery} == 'true'"></th>
-                    <th sec:authorize="hasRole('ROLE_ADMIN')"></th>
+                    <th sec:authorize="hasRole(T(org.agard.InventoryManagement.config.UserRole).ADMIN.authority)"></th>
                 </tr>
                 </thead>
                 <tbody>
@@ -44,7 +44,7 @@
                             Update
                         </a>
                     </td>
-                    <td sec:authorize="hasRole('ROLE_ADMIN')">
+                    <td sec:authorize="hasRole(T(org.agard.InventoryManagement.config.UserRole).ADMIN.authority)">
                         <a th:unless="${vol.deleted}"
                            class="btn btn-outline-danger volDeleteBtn"
                            th:link="@{__${@volumeController.VOLUME_DELETE_PATH}__(
@@ -73,16 +73,15 @@
     </div>
 
     <div class="row justify-content-center flex-column">
-        <div class="col">
-            <nav th:with="url = @{__${@volumeController.VOLUME_TABLE_PATH}__}">
+        <div class="col" th:link="${deletedQuery}">
+            <nav th:with="url = ${deletedQuery}? @{__${@volumeController.VOLUME_TABLE_PATH}__(deleted=${deletedQuery})} : @{__${@volumeController.VOLUME_TABLE_PATH}__}">
                 <ul class="pagination justify-content-center mb-0">
                     <li class="page-item"
                         th:classappend="${volumePage.hasPrevious()} == false ? |disabled|">
                         <a class="page-link btn rounded-start rounded-end-0" id="volPreviousPage"
                            th:link="@{__${url}__(description=${descriptionQuery},
                                           pageNumber=${volumePage.getNumber()} - 1,
-                                          pageSize=${volumePage.getSize()},
-                                          deleted=${deletedQuery}
+                                          pageSize=${volumePage.getSize()}
                                           )}">
                             Previous
                         </a>
@@ -92,8 +91,7 @@
                         <a class="page-link btn rounded-start-0 rounded-end" id="volNextPage"
                            th:link="@{__${url}__(description=${descriptionQuery},
                                           pageNumber=${volumePage.getNumber()} + 1,
-                                          pageSize=${volumePage.getSize()},
-                                          deleted=${deletedQuery}
+                                          pageSize=${volumePage.getSize()}
                                           )}">
                             Next
                         </a>

@@ -1,6 +1,8 @@
 package org.agard.InventoryManagement.service;
 
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.agard.InventoryManagement.Exceptions.ItemCreationException;
 import org.agard.InventoryManagement.Exceptions.NotFoundException;
 import org.agard.InventoryManagement.ViewModels.OrderItemForm;
 import org.agard.InventoryManagement.ViewModels.ReceivingOrderForm;
@@ -20,7 +22,7 @@ import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
-public class ReceivingOrderServiceImpl implements ReceivingOrderService {
+public class ReceivingOrderServiceImpl implements ReceivingOrderService, PagingService {
 
     private final ReceivingOrderRepository orderRepository;
 
@@ -28,30 +30,13 @@ public class ReceivingOrderServiceImpl implements ReceivingOrderService {
 
     private final ReceivingOrderFormMapper formMapper;
 
-    private final Integer DEFAULT_PAGE_SIZE = 20;
+    private final Sort defaultSort = Sort.by("createdDate").descending();
 
-    private final Integer MAX_PAGE_SIZE = 50;
-
-
-    private PageRequest buildPageRequest(Integer pageNumber, Integer pageSize){
-
-        if(pageNumber == null || pageNumber < 0){
-            pageNumber = 0;
-        }
-
-        if(pageSize == null || (pageSize < 1 || pageSize > MAX_PAGE_SIZE)){
-            pageSize = DEFAULT_PAGE_SIZE;
-        }
-
-        Sort defaultSort = Sort.by("createdDate").descending();
-
-        return PageRequest.of(pageNumber, pageSize, defaultSort);
-    }
 
     @Override
     public Page<ReceivingOrder> filterOrderPage(String supplier, LocalDateTime createdBefore, Integer pageNumber, Integer pageSize) {
 
-        PageRequest pageRequest = buildPageRequest(pageNumber, pageSize);
+        PageRequest pageRequest = buildPageRequest(pageNumber, pageSize, defaultSort);
 
         if(!StringUtils.hasText(supplier)){
             supplier = null;
@@ -61,6 +46,7 @@ public class ReceivingOrderServiceImpl implements ReceivingOrderService {
     }
 
     @Override
+    @Transactional
     public void saveOrder(ReceivingOrderForm orderForm) {
 
         Set<OrderItem> itemsToSave = new HashSet<>();
@@ -86,7 +72,12 @@ public class ReceivingOrderServiceImpl implements ReceivingOrderService {
 
         orderToSave.setItems(itemsToSave);
         orderToSave.setSupplier(orderForm.getSupplier());
-        orderRepository.save(orderToSave);
+        try{
+            orderRepository.save(orderToSave);
+        }
+        catch (RuntimeException e){
+            throw new ItemCreationException("Something went wrong saving this order");
+        }
 
         itemService.revertInventory(itemsToDelete, false);
         for(OrderItem item : itemsToDelete){

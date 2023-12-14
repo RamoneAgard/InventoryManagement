@@ -27,7 +27,7 @@
                     <th>Number of Products</th>
                     <th>Creation Date</th>
                     <th th:unless="${deletedQuery} == 'true'"></th>
-                    <th sec:authorize="hasRole('ROLE_ADMIN')"></th>
+                    <th sec:authorize="hasRole(T(org.agard.InventoryManagement.config.UserRole).ADMIN.authority)"></th>
                 </tr>
                 </thead>
                 <tbody>
@@ -42,7 +42,7 @@
                             Update
                         </a>
                     </td>
-                    <td sec:authorize="hasRole('ROLE_ADMIN')">
+                    <td sec:authorize="hasRole(T(org.agard.InventoryManagement.config.UserRole).ADMIN.authority)">
                         <a th:unless="${cat.deleted}"
                            class="btn btn-outline-danger catDeleteBtn"
                            th:link="@{__${@categoryController.CATEGORY_DELETE_PATH}__(
@@ -71,16 +71,15 @@
     </div>
 
     <div class="row justify-content-center flex-column">
-        <div class="col">
-            <nav th:with="url = @{__${@categoryController.CATEGORY_TABLE_PATH}__}">
+        <div class="col" th:link="${deletedQuery}">
+            <nav th:with="url = ${deletedQuery}? @{__${@categoryController.CATEGORY_TABLE_PATH}__(deleted=${deletedQuery})} : @{__${@categoryController.CATEGORY_TABLE_PATH}__}">
                 <ul class="pagination justify-content-center mb-0">
                     <li class="page-item"
                         th:classappend="${categoryPage.hasPrevious()} == false ? |disabled|">
                         <a class="page-link btn rounded-start rounded-end-0" id="catPreviousPage"
                            th:link="@{__${url}__(name=${nameQuery},
                                           pageNumber=${categoryPage.getNumber()} - 1,
-                                          pageSize=${categoryPage.getSize()},
-                                          deleted=${deletedQuery}
+                                          pageSize=${categoryPage.getSize()}
                                           )}">
                             Previous
                         </a>
@@ -90,8 +89,7 @@
                         <a class="page-link btn rounded-start-0 rounded-end" id="catNextPage"
                            th:link="@{__${url}__(name=${nameQuery},
                                           pageNumber=${categoryPage.getNumber()} + 1,
-                                          pageSize=${categoryPage.getSize()},
-                                          deleted=${deletedQuery}
+                                          pageSize=${categoryPage.getSize()}
                                           )}">
                             Next
                         </a>

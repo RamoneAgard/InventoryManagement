@@ -17,11 +17,12 @@ import java.util.HashSet;
 @ToString
 @Builder
 @NoArgsConstructor
+@AllArgsConstructor
 @Entity
 public class Product {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @NotBlank(message = "Non-blank, 12 digit universal product code required ")
@@ -39,6 +40,7 @@ public class Product {
     private String name;
 
     @ManyToOne
+    @NotNull
     private Category category;
 
     @Positive(message = "Valid price value required")
@@ -54,6 +56,7 @@ public class Product {
     private Integer unitSize;
 
     @ManyToOne
+    @NotNull
     private Volume volume;
 
     @PositiveOrZero(message = "Enter a non-negative in-stock value")
@@ -73,39 +76,4 @@ public class Product {
     @Builder.Default
     private boolean deleted = false;
 
-
-    public Product(Long id, String upc, String itemCode, String name, Category category, BigDecimal price, BigDecimal cost, Integer unitSize, Volume volume, Integer stock, LocalDateTime createdDate, LocalDateTime lastModifiedDate, Integer version, boolean deleted) {
-        this.id = id;
-        this.upc = upc;
-        this.itemCode = itemCode;
-        this.name = name;
-        this.setCategory(category);
-        this.price = price;
-        this.cost = cost;
-        this.unitSize = unitSize;
-        this.setVolume(volume);
-        this.stock = stock;
-        this.createdDate = createdDate;
-        this.lastModifiedDate = lastModifiedDate;
-        this.version = version;
-        this.deleted = deleted;
-    }
-
-    public void setCategory(Category category){
-        this.category = category;
-        category.addProduct(this);
-    }
-
-    public void setVolume(Volume volume){
-        this.volume = volume;
-        volume.addProduct(this);
-    }
-
-    public void dereferenceCategory(){
-        this.category = null;
-    }
-
-    public void dereferenceVolume(){
-        this.volume = null;
-    }
 }

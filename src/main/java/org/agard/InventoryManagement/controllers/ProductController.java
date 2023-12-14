@@ -3,8 +3,12 @@ package org.agard.InventoryManagement.controllers;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.agard.InventoryManagement.Exceptions.ItemCreationException;
 import org.agard.InventoryManagement.Exceptions.NotFoundException;
 import org.agard.InventoryManagement.ViewModels.ProductForm;
+import org.agard.InventoryManagement.annotations.IsAdmin;
+import org.agard.InventoryManagement.annotations.IsEditor;
+import org.agard.InventoryManagement.annotations.IsUser;
 import org.agard.InventoryManagement.domain.Category;
 import org.agard.InventoryManagement.domain.Product;
 import org.agard.InventoryManagement.domain.Volume;
@@ -24,18 +28,18 @@ import java.util.List;
 
 @Controller
 @RequiredArgsConstructor
-@PreAuthorize("hasRole('ROLE_USER')")
+@IsUser
 public class ProductController {
 
     public static final String PRODUCT_PATH = "/products";
 
-    public static final String PRODUCT_UPDATE_PATH = "/products/update";
+    public static final String PRODUCT_UPDATE_PATH = PRODUCT_PATH + "/update";
 
-    public static final String PRODUCT_DELETE_PATH = "/products/delete";
+    public static final String PRODUCT_DELETE_PATH = PRODUCT_PATH + "/delete";
 
-    public static final String PRODUCT_TABLE_PATH = "/products/table";
+    public static final String PRODUCT_TABLE_PATH = PRODUCT_PATH + "/table";
 
-    public static final String PRODUCT_REACTIVATE_PATH = "/products/reactivate";
+    public static final String PRODUCT_REACTIVATE_PATH = PRODUCT_PATH + "/reactivate";
 
     private final ProductService productService;
 
@@ -79,7 +83,7 @@ public class ProductController {
     }
 
 
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @IsAdmin
     @RequestMapping(value = PRODUCT_TABLE_PATH, params = "deleted", method = {RequestMethod.GET, RequestMethod.POST})
     public String getDeletedProductTable(@RequestParam(required = false, name = "name") String nameQuery,
                                   @RequestParam(required = false, name = "category") List<Long> categoriesQuery,
@@ -99,7 +103,7 @@ public class ProductController {
     }
 
 
-    @PreAuthorize("hasRole('ROLE_EDITOR')")
+    @IsEditor
     @GetMapping(PRODUCT_UPDATE_PATH)
     public String getUpdateForm(Model model,
                                 @RequestParam(required = false) Long id){
@@ -128,7 +132,7 @@ public class ProductController {
     }
 
 
-    @PreAuthorize("hasRole('ROLE_EDITOR')")
+    @IsEditor
     @PostMapping(PRODUCT_UPDATE_PATH)
     public String processCreateOrUpdate(@Valid ProductForm productForm,
                                         BindingResult bindingResult,
@@ -141,13 +145,17 @@ public class ProductController {
                 response.setStatus(201);
                 model.addAttribute("productForm", new ProductForm());
             }
-            catch (NotFoundException e){
+            catch (NotFoundException | ItemCreationException e){
                 model.addAttribute("addError", e.getMessage());
+            }
+            catch (RuntimeException e){
+                model.addAttribute("addError", "Something went wrong, reload and try again");
             }
         }
         else{
             model.addAttribute("addError",
-                    bindingResult.getAllErrors().get(0).getDefaultMessage()
+                    bindingResult.getFieldErrors().get(0).getField() + ": " +
+                            bindingResult.getFieldErrors().get(0).getDefaultMessage()
             );
         }
 
@@ -161,7 +169,7 @@ public class ProductController {
     }
 
 
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @IsAdmin
     @GetMapping(PRODUCT_DELETE_PATH)
     public String deleteProductById(@RequestParam Long id,
                                     @RequestParam(required = false) String name,
@@ -183,7 +191,7 @@ public class ProductController {
         return ViewNames.PRODUCT_TABLE_FRAGMENT;
     }
 
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @IsAdmin
     @GetMapping(PRODUCT_REACTIVATE_PATH)
     public String reactivateProductById(@RequestParam Long id,
                                         @RequestParam(required = false) String name,

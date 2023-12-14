@@ -8,7 +8,10 @@ import org.springframework.security.access.expression.method.DefaultMethodSecuri
 import org.springframework.security.access.expression.method.MethodSecurityExpressionHandler;
 import org.springframework.security.access.hierarchicalroles.RoleHierarchy;
 import org.springframework.security.access.hierarchicalroles.RoleHierarchyImpl;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.config.Customizer;
+import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.authentication.configurers.provisioning.UserDetailsManagerConfigurer;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -16,6 +19,8 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.annotation.web.configurers.HeadersConfigurer;
 import org.springframework.security.config.annotation.web.headers.FrameOptionsDsl;
 import org.springframework.security.config.annotation.web.servlet.configuration.EnableWebMvcSecurity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -24,6 +29,8 @@ import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.access.AccessDeniedHandler;
+import org.springframework.security.web.access.AccessDeniedHandlerImpl;
 import org.springframework.security.web.access.expression.DefaultWebSecurityExpressionHandler;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationSuccessHandler;
@@ -38,7 +45,8 @@ import static org.springframework.security.web.util.matcher.AntPathRequestMatche
 @EnableWebSecurity
 @EnableMethodSecurity()
 @Configuration
-public class SecurityConfig {
+public class SecurityConfig{
+
 
     @Bean
     MvcRequestMatcher.Builder mvc(HandlerMappingIntrospector introspector){
@@ -50,11 +58,11 @@ public class SecurityConfig {
     public SecurityFilterChain securityChain(HttpSecurity httpSecurity, MvcRequestMatcher.Builder mvc) throws Exception{
         httpSecurity.formLogin(Customizer.withDefaults());
         httpSecurity.authorizeHttpRequests((authorize) -> authorize
-                        .requestMatchers(mvc.pattern("/attributes/**")).hasRole("EDITOR")
-                        .requestMatchers(mvc.pattern("/users/**")).hasRole("ADMIN")
+                        .requestMatchers(mvc.pattern("/attributes/**")).hasRole(UserRole.EDITOR.name)
+                        .requestMatchers(mvc.pattern("/users/**")).hasRole(UserRole.ADMIN.name)
                         .requestMatchers(mvc.pattern("/styles/**")).permitAll()
                         .requestMatchers(antMatcher("/h2-console/**")).permitAll()
-                        .anyRequest().hasRole("USER")
+                        .anyRequest().hasRole(UserRole.USER.name)
                 )
                 .formLogin((formLogin) -> formLogin
                         .loginPage("/login")
@@ -82,33 +90,44 @@ public class SecurityConfig {
         return new BCryptPasswordEncoder();
     }
 
-    @Bean
-    public UserDetailsService userDetailsService(){
-        UserDetails user = User.builder()
-                .username("user")
-                .password(passwordEncoder().encode("password"))
-                .roles("USER")
-                .build();
+//    @Bean
+//    public AuthenticationManager authenticationManager(HttpSecurity http, UserDetailsService userDetailsService) throws Exception{
+//        AuthenticationManagerBuilder authManagerBuilder = http.getSharedObject(AuthenticationManagerBuilder.class);
+//        authManagerBuilder
+//                .userDetailsService(userDetailsService)
+//                .passwordEncoder(passwordEncoder());
+//        return authManagerBuilder.build();
+//    }
 
-        UserDetails editor = User.builder()
-                .username("editor")
-                .password(passwordEncoder().encode("password"))
-                .roles("EDITOR")
-                .build();
 
-        UserDetails admin = User.builder()
-                .username("admin")
-                .password(passwordEncoder().encode("password"))
-                .roles("ADMIN")
-                .build();
-
-        return new InMemoryUserDetailsManager(user, editor, admin);
-    }
+//    @Bean
+//    public UserDetailsService userDetailsService(){
+//        UserDetails user = User.builder()
+//                .username("user")
+//                .password(passwordEncoder().encode("password"))
+//                .roles("USER")
+//                .build();
+//
+//        UserDetails editor = User.builder()
+//                .username("editor")
+//                .password(passwordEncoder().encode("password"))
+//                .roles("EDITOR")
+//                .build();
+//
+//        UserDetails admin = User.builder()
+//                .username("admin")
+//                .password(passwordEncoder().encode("password"))
+//                .roles("ADMIN")
+//                .build();
+//
+//        return new InMemoryUserDetailsManager(user, editor, admin);
+//    }
 
     @Bean
     public RoleHierarchy roleHierarchy(){
         RoleHierarchyImpl roleHierarchy = new RoleHierarchyImpl();
-        roleHierarchy.setHierarchy("ROLE_ADMIN > ROLE_EDITOR \n ROLE_EDITOR > ROLE_USER");
+        roleHierarchy.setHierarchy(UserRole.ADMIN.authority + " > " + UserRole.EDITOR.authority + " \n "
+                                    + UserRole.EDITOR.authority + " > " + UserRole.USER.authority);
         return roleHierarchy;
     }
 
