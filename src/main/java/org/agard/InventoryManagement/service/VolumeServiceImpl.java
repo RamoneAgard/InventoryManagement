@@ -64,21 +64,21 @@ public class VolumeServiceImpl implements VolumeService, PagingService {
 
     @Override
     @Transactional
-    public void saveVolume(Volume volume) {
+    public void saveVolume(Volume volume) throws ItemCreationException {
         try{
             volumeRepository.save(volume);
         }
         catch (RuntimeException e){
-            String message = "Something went wrong saving this volume";
             if(e.getCause() instanceof ConstraintViolationException){
-                message = "Volume descriptions must be unique";
+                throw new ItemCreationException("Volume descriptions must be unique");
+            } else{
+                throw e;
             }
-            throw new ItemCreationException(message);
         }
     }
 
     @Override
-    public void deleteById(Long id) {
+    public void softDeleteById(Long id) {
         if(volumeRepository.existsById(id)){
             volumeRepository.softDeleteById(id);
             return;

@@ -22,8 +22,6 @@ import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.ui.ModelMap;
 import org.springframework.validation.BindingResult;
 
-import java.util.List;
-
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
@@ -344,7 +342,7 @@ class CategoryControllerTest {
                 .andExpect(model().attributeExists("categoryPage"))
                 .andReturn();
 
-        verify(categoryService, times(1)).deleteById(longArgumentCaptor.capture());
+        verify(categoryService, times(1)).softDeleteById(longArgumentCaptor.capture());
         assertEquals(mockId, longArgumentCaptor.getValue());
         verify(categoryService, times(1)).filterCategoryPage(any(), any(), any());
 
@@ -358,7 +356,7 @@ class CategoryControllerTest {
     void deleteNonExistingCategory() throws Exception{
         String mockExceptionMessage = "Category not found for given ID";
         Mockito.doThrow(new NotFoundException(mockExceptionMessage))
-                .when(categoryService).deleteById(any(Long.class));
+                .when(categoryService).softDeleteById(any(Long.class));
         Mockito.when(categoryService.filterCategoryPage(any(), any(), any()))
                 .thenReturn(ProductControllerTest.createMockCategoryPage());
         Long fakeId = 2L;
@@ -370,7 +368,7 @@ class CategoryControllerTest {
                 .andExpect(model().attributeExists("categoryPage", "tableError"))
                 .andReturn();
 
-        verify(categoryService, times(1)).deleteById(longArgumentCaptor.capture());
+        verify(categoryService, times(1)).softDeleteById(longArgumentCaptor.capture());
         assertEquals(fakeId, longArgumentCaptor.getValue());
         verify(categoryService, times(1)).filterCategoryPage(null, 0, null);
 

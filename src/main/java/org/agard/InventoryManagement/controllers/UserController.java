@@ -4,7 +4,6 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.agard.InventoryManagement.Exceptions.ItemCreationException;
-import org.agard.InventoryManagement.Exceptions.ItemDeleteException;
 import org.agard.InventoryManagement.Exceptions.NotFoundException;
 import org.agard.InventoryManagement.ViewModels.UserForm;
 import org.agard.InventoryManagement.annotations.IsAdmin;
@@ -90,7 +89,10 @@ public class UserController {
                                         Model model,
                                         @AuthenticationPrincipal DbUserDetails userDetails){
 
-        if(!bindingResult.hasErrors()){
+        if(userForm.getId().equals(userDetails.getCurrentUserId()) && userForm.getRole().equals(UserRole.ADMIN)){
+            model.addAttribute("tableError", "Cannot change user role while in use!");
+        }
+        else if(!bindingResult.hasErrors()){
             try{
                 userService.saveUser(userForm, userDetails.getCurrentUserId());
                 response.setStatus(201);
@@ -98,9 +100,6 @@ public class UserController {
             }
             catch (NotFoundException | ItemCreationException e){
                 model.addAttribute("addError", e.getMessage());
-            }
-            catch (RuntimeException e){
-                model.addAttribute("addError", "Something went wrong, reload and try again");
             }
         }
         else {
@@ -124,14 +123,18 @@ public class UserController {
                                       @RequestParam(required = false) Integer pageSize,
                                       Model model,
                                       @AuthenticationPrincipal DbUserDetails userDetails){
+
         try {
-            if (enable) {
+            if(userDetails.getCurrentUserId().equals(id)){
+                model.addAttribute("tableError", "Cannot disable/enable user while in use");
+            }
+            else if (enable) {
                 userService.enableUserById(id);
             } else {
                 userService.disableUserById(id, userDetails.getCurrentUserId());
             }
         }
-        catch (NotFoundException | ItemCreationException e){
+        catch (NotFoundException e){
             model.addAttribute("tableError", e.getMessage());
         }
 
@@ -150,9 +153,14 @@ public class UserController {
                                  @AuthenticationPrincipal DbUserDetails userDetails){
 
         try{
-            userService.deleteById(id, userDetails.getCurrentUserId());
+            if(userDetails.getCurrentUserId().equals(id)){
+                model.addAttribute("tableError", "Cannot delete user while in use!");
+            }
+            else{
+                userService.deleteById(id, userDetails.getCurrentUserId());
+            }
         }
-        catch (NotFoundException | ItemDeleteException e){
+        catch (NotFoundException e){
             model.addAttribute("tableError", e.getMessage());
         }
 

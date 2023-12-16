@@ -8,12 +8,10 @@ import org.agard.InventoryManagement.Exceptions.ItemCreationException;
 import org.agard.InventoryManagement.Exceptions.NotFoundException;
 import org.agard.InventoryManagement.annotations.IsAdmin;
 import org.agard.InventoryManagement.annotations.IsEditor;
-import org.agard.InventoryManagement.domain.Category;
 import org.agard.InventoryManagement.domain.Volume;
 import org.agard.InventoryManagement.service.VolumeService;
 import org.agard.InventoryManagement.util.ViewNames;
 import org.springframework.data.domain.Page;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -127,7 +125,7 @@ public class VolumeController {
                                    Model model){
 
         try{
-            volumeService.deleteById(id);
+            volumeService.softDeleteById(id);
         }
         catch (NotFoundException e){
             model.addAttribute("tableError", e.getMessage());

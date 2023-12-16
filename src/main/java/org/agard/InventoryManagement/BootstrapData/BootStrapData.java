@@ -6,6 +6,7 @@ import org.agard.InventoryManagement.config.UserRole;
 import org.agard.InventoryManagement.domain.*;
 import org.agard.InventoryManagement.repositories.*;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.context.annotation.Profile;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
@@ -14,6 +15,7 @@ import java.util.Arrays;
 
 @RequiredArgsConstructor
 @Component
+@Profile("h2memory")
 public final class BootStrapData implements CommandLineRunner {
 
     private final ProductRepository productRepository;
@@ -164,7 +166,15 @@ public final class BootStrapData implements CommandLineRunner {
                 .role(UserRole.EDITOR.name)
                 .build();
 
-        userRepository.saveAll(Arrays.asList(adminUser, editorUser));
+        User plainUser = User.builder()
+                .username("p.jane")
+                .password("$2a$10$a9zBTZPSW0AvQkuZFJjLreG3Saych6OW7mdHe5RKN5TjRkyz163Ca")
+                .firstName("Plain")
+                .lastName("Jane")
+                .role(UserRole.USER.name)
+                .build();
+
+        userRepository.saveAll(Arrays.asList(adminUser, editorUser, plainUser));
     }
 
 }

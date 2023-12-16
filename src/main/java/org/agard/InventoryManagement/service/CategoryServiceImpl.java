@@ -64,32 +64,23 @@ public class CategoryServiceImpl implements CategoryService, PagingService {
     }
 
     @Override
-    public Set<Product> getProductsForCategory(Category category) {
-        Category existingCategory = categoryRepository.findByIdAndDeletedFalse(category.getId()).orElse(null);
-        if(existingCategory == null){
-            return null;
-        }
-        return existingCategory.getProducts();
-    }
-
-    @Override
     @Transactional
-    public void saveCategory(Category category) {
+    public void saveCategory(Category category) throws ItemCreationException {
         try{
             categoryRepository.save(category);
         }
         catch (RuntimeException e){
-            String message = "Something went wrong saving this category";
             if(e.getCause() instanceof ConstraintViolationException){
-                message = "Category names must be unique";
+                throw new ItemCreationException("Category names must be unique");
+            } else{
+                throw e;
             }
-            throw new ItemCreationException(message);
         }
     }
 
 
     @Override
-    public void deleteById(Long id) {
+    public void softDeleteById(Long id) {
         if(categoryRepository.existsById(id)){
             categoryRepository.softDeleteById(id);
             return;

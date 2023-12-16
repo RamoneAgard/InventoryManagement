@@ -136,12 +136,8 @@ public class ReceivingOrderController {
                 model.addAttribute("receivingOrderForm", new ReceivingOrderForm());
                 response.setStatus(201);
             }
-            catch (StockException | NotFoundException | ItemCreationException e){
+            catch (StockException | NotFoundException e){
                 model.addAttribute("addError", e.getMessage());
-
-            }
-            catch (RuntimeException e){
-                model.addAttribute("addError", "Something went wrong, reload and try again");
             }
         }
         else{

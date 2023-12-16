@@ -48,6 +48,7 @@ public class User {
     @NotBlank
     private String role;
 
+    @NotNull
     @Builder.Default
     private boolean enabled = true;
 

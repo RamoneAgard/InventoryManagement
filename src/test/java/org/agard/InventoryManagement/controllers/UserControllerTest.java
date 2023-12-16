@@ -1,7 +1,6 @@
 package org.agard.InventoryManagement.controllers;
 
 import org.agard.InventoryManagement.Exceptions.ItemCreationException;
-import org.agard.InventoryManagement.Exceptions.ItemDeleteException;
 import org.agard.InventoryManagement.Exceptions.NotFoundException;
 import org.agard.InventoryManagement.ViewModels.UserForm;
 import org.agard.InventoryManagement.config.DbUserDetails;
@@ -12,11 +11,9 @@ import org.agard.InventoryManagement.mappers.UserFormMapper;
 import org.agard.InventoryManagement.mappers.UserFormMapperImpl;
 import org.agard.InventoryManagement.service.UserService;
 import org.agard.InventoryManagement.util.ViewNames;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
-import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -29,9 +26,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.test.context.support.*;
-import org.springframework.security.web.context.SecurityContextHolderFilter;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.ui.ModelMap;
@@ -56,6 +51,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @Retention(RetentionPolicy.RUNTIME)
 @WithSecurityContext(factory = UserControllerTest.TestSecurityContextConfig.class)
 @interface WithMockDbUser{
+    long idValue() default  10L;
 }
 
 
@@ -68,14 +64,15 @@ class UserControllerTest {
         @Override
         public SecurityContext createSecurityContext(WithMockDbUser annotation) {
             SecurityContext context = SecurityContextHolder.createEmptyContext();
-            DbUserDetails principle = new DbUserDetails(createMockUser());
+            DbUserDetails principle = new DbUserDetails(createMockUser(annotation.idValue()));
             Authentication auth = UsernamePasswordAuthenticationToken.authenticated(principle, principle.getPassword(), principle.getAuthorities());
             context.setAuthentication(auth);
             return context;
         }
 
-        private User createMockUser(){
+        private User createMockUser(long idVal){
             return User.builder()
+                    .id(idVal)
                     .username("testAdmin")
                     .password("password")
                     .firstName("Tessa")
@@ -300,7 +297,7 @@ class UserControllerTest {
 
 
     @Test
-    @WithMockDbUser
+    @WithMockDbUser()
     void postNewOrUpdateUser() throws Exception{
         UserForm mockUserForm = createMockUserPage().getContent().get(0);
         mockUserForm.setEnabled(false);
@@ -329,7 +326,7 @@ class UserControllerTest {
     }
 
     @Test
-    @WithMockUser(roles = "ADMIN")
+    @WithMockDbUser()
     void postBadUserForm() throws Exception{
         UserForm mockUserForm = createMockUserPage().getContent().get(0);
         mockUserForm.setEnabled(false);
@@ -399,7 +396,7 @@ class UserControllerTest {
     }
 
     @Test
-    @WithMockUser(roles = "ADMIN")
+    @WithMockDbUser
     void getEnableUser() throws Exception{
         Mockito.when(userService.filterUserPage(any(), any(), any(), any()))
                 .thenReturn(createMockUserPage());
@@ -428,7 +425,7 @@ class UserControllerTest {
     }
 
     @Test
-    @WithMockUser(roles = "ADMIN")
+    @WithMockDbUser
     void getEnableNonExistingUser() throws Exception{
         String mockExceptionMessage = "User not found for given Id";
         Mockito.doThrow(new NotFoundException(mockExceptionMessage))
@@ -491,14 +488,11 @@ class UserControllerTest {
     }
 
     @Test
-    @WithMockDbUser
+    @WithMockDbUser(idValue = 3L)
     void getDisableUserWithCreationException() throws Exception{
-        String mockExceptionMessage = "Cannot disable user while in use";
-        Mockito.doThrow(new ItemCreationException(mockExceptionMessage))
-                .when(userService).disableUserById(any(), any());
         Mockito.when(userService.filterUserPage(any(), any(), any(), any()))
                 .thenReturn(createMockUserPage());
-        Long mockId = 4L;
+        Long mockId = 3L;
         String lastNameQuery = "smith";
 
         MvcResult mockResult = mockMvc.perform(get(UserController.USERS_ENABLE_PATH)
@@ -510,9 +504,7 @@ class UserControllerTest {
                 .andExpect(model().attributeExists("userPage", "lastNameQuery", "tableError"))
                 .andReturn();
 
-        verify(userService, times(1)).disableUserById(longArgumentCaptor.capture(), any());
-        assertEquals(mockId, longArgumentCaptor.getValue());
-
+        verify(userService, times(0)).disableUserById(any(), any());
         verify(userService, times(0)).enableUserById(any());
 
         verify(userService, times(1)).filterUserPage(lastNameQuery, null, 0, null);
@@ -521,7 +513,6 @@ class UserControllerTest {
         Page<UserForm> userPage = (Page<UserForm>) modelMap.getAttribute("userPage");
         assertEquals(3, userPage.getNumberOfElements());
         assertEquals(lastNameQuery, modelMap.getAttribute("lastNameQuery"));
-        assertEquals(mockExceptionMessage, modelMap.getAttribute("tableError"));
     }
 
     @Test
@@ -591,14 +582,11 @@ class UserControllerTest {
     }
 
     @Test
-    @WithMockDbUser
+    @WithMockDbUser(idValue = 2L)
     void deleteUserWithDeleteException() throws Exception{
-        String mockExceptionMessage = "Cannot delete user while in use!";
-        Mockito.doThrow(new ItemDeleteException(mockExceptionMessage))
-                .when(userService).deleteById(any(), any());
         Mockito.when(userService.filterUserPage(any(), any(), any(), any()))
                 .thenReturn(createMockUserPage());
-        Long mockId = 1L;
+        Long mockId = 2L;
         String lastNameQuery = "brown";
         Integer pageSizeQuery = 5;
 
@@ -611,15 +599,13 @@ class UserControllerTest {
                 .andExpect(model().attributeExists("tableError", "userPage", "lastNameQuery"))
                 .andReturn();
 
-        verify(userService, times(1)).deleteById(longArgumentCaptor.capture(), any());
-        assertEquals(mockId, longArgumentCaptor.getValue());
+        verify(userService, times(0)).deleteById(any(), any());
 
         verify(userService, times(1)).filterUserPage(lastNameQuery, null, 0, pageSizeQuery);
 
         ModelMap modelMap = mockResult.getModelAndView().getModelMap();
         Page<UserForm> userPage = (Page<UserForm>) modelMap.getAttribute("userPage");
         assertEquals(3, userPage.getNumberOfElements());
-        assertEquals(mockExceptionMessage, modelMap.getAttribute("tableError"));
         assertEquals(lastNameQuery, modelMap.getAttribute("lastNameQuery"));
         assertNull(modelMap.getAttribute("roleQuery"));
     }

@@ -47,6 +47,15 @@ public class OutgoingOrderServiceImpl implements OutgoingOrderService, PagingSer
         return orderRepository.findAllWithFilters(receiver, createdBefore, pageRequest);
     }
 
+    /**
+     * Creates/Updates and persists an OutgoingOrder object to the datasource using date from
+     * the 'orderForm' param. Also uses the OrderItemService to create/update the
+     * corresponding OrderItem objects in the 'orderForm' param
+     *
+     * @param orderForm form with corresponding data to create or update OutgoingOrder object in datasource
+     * @throws NotFoundException if orderFrom contains a non-null 'id' field and corresponding OutgoingOrder object is not found,
+     *                           or if corresponding OrderItemForms with non-null 'id' fields are not found
+     */
     @Override
     @Transactional
     public void saveOrder(OutgoingOrderForm orderForm) {
@@ -74,12 +83,7 @@ public class OutgoingOrderServiceImpl implements OutgoingOrderService, PagingSer
 
         orderToSave.setItems(itemsToSave);
         orderToSave.setReceiver(orderForm.getReceiver());
-        try{
-            orderRepository.save(orderToSave);
-        }
-        catch (RuntimeException e){
-            throw new ItemCreationException("Something went wrong saving this order");
-        }
+        orderRepository.save(orderToSave);
 
         itemService.revertInventory(itemsToDelete, true);
         for(OrderItem item : itemsToDelete){

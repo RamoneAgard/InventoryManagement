@@ -10,18 +10,12 @@ import org.agard.InventoryManagement.annotations.IsEditor;
 import org.agard.InventoryManagement.domain.Category;
 import org.agard.InventoryManagement.domain.Volume;
 import org.agard.InventoryManagement.service.CategoryService;
-import org.agard.InventoryManagement.service.VolumeService;
 import org.agard.InventoryManagement.util.ViewNames;
-import org.hibernate.exception.ConstraintViolationException;
 import org.springframework.data.domain.Page;
-import org.springframework.security.access.annotation.Secured;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @Controller
 @RequiredArgsConstructor
@@ -113,9 +107,6 @@ public class CategoryController {
             catch (NotFoundException | ItemCreationException e){
                 model.addAttribute("addError", e.getMessage());
             }
-            catch (RuntimeException e){
-                model.addAttribute("addError", "Something went wrong, reload and try again");
-            }
         }
         else {
             model.addAttribute("addError",
@@ -136,7 +127,7 @@ public class CategoryController {
                                      Model model){
 
         try{
-            categoryService.deleteById(id);
+            categoryService.softDeleteById(id);
         }
         catch (NotFoundException e){
             model.addAttribute("tableError", e.getMessage());

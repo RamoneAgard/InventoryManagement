@@ -34,6 +34,16 @@ public class OrderItemServiceImpl implements OrderItemService{
                 });
     }
 
+    /**
+     * Creates and persists an OrderItem object to the datasource using the data from the 'orderItemForm' param.
+     * The corresponding Product object that it maps to has its 'stock' field updated depending on
+     * if this OrderItem is a part of a OutgoingOrder object or ReceivingOrder object
+     *
+     * @param orderItemForm form with corresponding data to create or update OrderItem object in datasource
+     * @param outgoing boolean value to indicate if this OrderItem corresponds to an OutgoingOrder object (false defaults to ReceivingOrder object)
+     * @return the OrderItem object after it has been saved to the dataSource
+     * @throws StockException if updating 'stock' field values results in a negative value
+     */
     @Override
     @Transactional
     public OrderItem updateOrCreateOrderItem(OrderItemForm orderItemForm, boolean outgoing) {
@@ -81,12 +91,8 @@ public class OrderItemServiceImpl implements OrderItemService{
         itemToSave.setQuantity(orderItemForm.getQuantity());
         itemToSave.setPrice(orderItemForm.getPrice());
 
-        try{
-            return itemRepository.save(itemToSave);
-        }
-        catch (RuntimeException e){
-            throw new ItemCreationException("Something went wrong saving this order line");
-        }
+        return itemRepository.save(itemToSave);
+
 
     }
 
@@ -99,6 +105,14 @@ public class OrderItemServiceImpl implements OrderItemService{
         return itemForm;
     }
 
+    /**
+     * Reverts the changes to the 'stock' field of Product objects that were originally updated
+     * when the OrderItem objects in the list where created
+     *
+     * @param items List of OrderItem objects
+     * @param outgoing boolean value to indicate if this OrderItem corresponds to an OutgoingOrder object (false defaults to ReceivingOrder object)
+     * @throws StockException if reverting 'stock' field values results in a negative value
+     */
     @Override
     @Transactional
     public void revertInventory(Collection<OrderItem> items, boolean outgoing) {
@@ -116,7 +130,7 @@ public class OrderItemServiceImpl implements OrderItemService{
                     throw new StockException("Reverting the received inventory on this order for " +
                             "item: " + itemProduct.getItemCode() + " exceeds the currently " +
                             "available stock. To continue, manually adjust the item stock before" +
-                            "deleting this order.");
+                            "deleting this order line.");
                 }
                 itemProduct.setStock(
                         itemProduct.getStock() - item.getQuantity()

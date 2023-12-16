@@ -566,7 +566,7 @@ class ProductControllerTest {
                 .andExpect(model().attributeExists("productPage", "categoriesQuery", "volumesQuery"))
                 .andReturn();
 
-        verify(productService, times(1)).deleteById(longArgumentCaptor.capture());
+        verify(productService, times(1)).softDeleteById(longArgumentCaptor.capture());
         assertEquals(mockId, longArgumentCaptor.getValue());
 
         verify(productService, times(1)).filterProductPage(eq(null), any(List.class), any(List.class), eq(0), eq(null));
@@ -586,7 +586,7 @@ class ProductControllerTest {
     void deleteNotExistingProduct() throws Exception{
         String mockExceptionMessage = "Product not found for given ID";
         Mockito.doThrow(new NotFoundException(mockExceptionMessage))
-                .when(productService).deleteById(any(Long.class));
+                .when(productService).softDeleteById(any(Long.class));
         Mockito.when(productService.filterProductPage(any(), any(), any(), any(), any()))
                 .thenReturn(createMockProductsPage());
         Long fakeId = 5L;
@@ -598,7 +598,7 @@ class ProductControllerTest {
                 .andExpect(model().attributeExists("productPage", "tableError"))
                 .andReturn();
 
-        verify(productService, times(1)).deleteById(longArgumentCaptor.capture());
+        verify(productService, times(1)).softDeleteById(longArgumentCaptor.capture());
         assertEquals(longArgumentCaptor.getValue(), fakeId);
 
         verify(productService, times(1)).filterProductPage(null, null, null, 0, null);

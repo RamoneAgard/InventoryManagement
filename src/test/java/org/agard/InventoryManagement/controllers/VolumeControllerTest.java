@@ -21,8 +21,6 @@ import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.ui.ModelMap;
 import org.springframework.validation.BindingResult;
 
-import java.util.List;
-
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
@@ -326,7 +324,7 @@ class VolumeControllerTest {
                 .andExpect(model().attributeExists("volumePage"))
                 .andReturn();
 
-        verify(volumeService, times(1)).deleteById(longArgumentCaptor.capture());
+        verify(volumeService, times(1)).softDeleteById(longArgumentCaptor.capture());
         assertEquals(mockId, longArgumentCaptor.getValue());
         verify(volumeService, times(1)).filterVolumePage(any(), any(), any());
 
@@ -340,7 +338,7 @@ class VolumeControllerTest {
     void deleteNonExistingVolume() throws Exception {
         String mockExceptionMessage = "Volume not found for given ID";
         Mockito.doThrow(new NotFoundException(mockExceptionMessage))
-                .when(volumeService).deleteById(any(Long.class));
+                .when(volumeService).softDeleteById(any(Long.class));
         Mockito.when(volumeService.filterVolumePage(any(), any(), any()))
                 .thenReturn(ProductControllerTest.createMockVolumePage());
         Long fakeId = 2L;
@@ -352,7 +350,7 @@ class VolumeControllerTest {
                 .andExpect(model().attributeExists("volumePage", "tableError"))
                 .andReturn();
 
-        verify(volumeService, times(1)).deleteById(longArgumentCaptor.capture());
+        verify(volumeService, times(1)).softDeleteById(longArgumentCaptor.capture());
         assertEquals(fakeId, longArgumentCaptor.getValue());
         verify(volumeService, times(1)).filterVolumePage(null, 0, null);
 

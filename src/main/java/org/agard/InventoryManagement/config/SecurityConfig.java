@@ -77,7 +77,7 @@ public class SecurityConfig{
                         .ignoringRequestMatchers(antMatcher("/h2-console/**"))
                 )
                 .headers((headers) -> headers
-                                .frameOptions((frameOptions) -> frameOptions.disable())
+                                .frameOptions((frameOptions) -> frameOptions.disable()) //for h2 console
                         )
                 .exceptionHandling((exceptionHandling) -> exceptionHandling
                         .accessDeniedPage(CustomErrorController.RESOURCE_DENIED_PATH)
@@ -89,39 +89,6 @@ public class SecurityConfig{
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
-
-//    @Bean
-//    public AuthenticationManager authenticationManager(HttpSecurity http, UserDetailsService userDetailsService) throws Exception{
-//        AuthenticationManagerBuilder authManagerBuilder = http.getSharedObject(AuthenticationManagerBuilder.class);
-//        authManagerBuilder
-//                .userDetailsService(userDetailsService)
-//                .passwordEncoder(passwordEncoder());
-//        return authManagerBuilder.build();
-//    }
-
-
-//    @Bean
-//    public UserDetailsService userDetailsService(){
-//        UserDetails user = User.builder()
-//                .username("user")
-//                .password(passwordEncoder().encode("password"))
-//                .roles("USER")
-//                .build();
-//
-//        UserDetails editor = User.builder()
-//                .username("editor")
-//                .password(passwordEncoder().encode("password"))
-//                .roles("EDITOR")
-//                .build();
-//
-//        UserDetails admin = User.builder()
-//                .username("admin")
-//                .password(passwordEncoder().encode("password"))
-//                .roles("ADMIN")
-//                .build();
-//
-//        return new InMemoryUserDetailsManager(user, editor, admin);
-//    }
 
     @Bean
     public RoleHierarchy roleHierarchy(){

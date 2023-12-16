@@ -3,7 +3,6 @@ package org.agard.InventoryManagement.service;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.agard.InventoryManagement.Exceptions.ItemCreationException;
-import org.agard.InventoryManagement.Exceptions.ItemDeleteException;
 import org.agard.InventoryManagement.Exceptions.NotFoundException;
 import org.agard.InventoryManagement.ViewModels.UserForm;
 import org.agard.InventoryManagement.config.UserRole;
@@ -52,9 +51,20 @@ public class UserServiceImpl implements UserService, PagingService{
         );
     }
 
+
+    /**
+     * Creates/Updates and persists a User object to the datasource using data from the 'formToSave' param.
+     * To create a new User object or update the password field, the 'password' and 'passwordConfirm' fields
+     * of the 'formToSave' param must match or an ItemCreationException is thrown. The currently authenticated
+     * User cannot update their User Role or an ItemCreationException is thrown.
+     *
+     * @param formToSave form with corresponding data to create or update a User object in the datasource
+     * @param currentAdminId the 'id' field value of the currently authenticated User
+     * @throws ItemCreationException if datasource constraints are not met, or if the form has invalid update fields
+     */
     @Override
     @Transactional
-    public void saveUser(UserForm formToSave, Long currentAdminId) {
+    public void saveUser(UserForm formToSave, Long currentAdminId) throws ItemCreationException {
         User userToSave;
         boolean isNewUser = false;
         if(formToSave.getId() == null){
@@ -84,7 +94,7 @@ public class UserServiceImpl implements UserService, PagingService{
 
         if(!isNewUser && userToSave.getId().equals(currentAdminId)){
             if(!formToSave.getRole().name.equals(userToSave.getRole())){
-                throw new ItemCreationException("Cannot change user role while in use");
+                throw new IllegalArgumentException("Attempting to change user role of current user");
             }
         }
         userToSave.setRole(formToSave.getRole().name);
@@ -97,24 +107,33 @@ public class UserServiceImpl implements UserService, PagingService{
             userRepository.save(userToSave);
         }
         catch (RuntimeException e){
-            String message = "Something went wrong saving this User";
             if(e.getCause() instanceof ConstraintViolationException){
-                message = "Usernames must be unique, this username already exists";
+                throw new ItemCreationException("Usernames must be unique, this username already exists");
+            } else{
+                throw e;
             }
-            throw new ItemCreationException(message);
         }
 
     }
 
+    /**
+     * Marks the 'enabled' field of the retrieved User object as false.
+     * The supplied 'id' should not match that of the currently authenticated user
+     * or an IllegalArgumentException is thrown.
+     *
+     * @param id             'id' field value of the User object to mark as 'disabled' in the datasource
+     * @param currentAdminId the 'id' field value of the currently authenticated User
+     */
     @Override
     public void disableUserById(Long id, Long currentAdminId) {
         if(id.equals(currentAdminId)){
-            throw new ItemCreationException("Cannot disable user while in use!");
+            throw new IllegalArgumentException("Id values are the same");
         }
         User userToDisable = getById(id);
         userToDisable.setEnabled(false);
         userRepository.save(userToDisable);
     }
+
 
     @Override
     public void enableUserById(Long id) {
@@ -123,10 +142,18 @@ public class UserServiceImpl implements UserService, PagingService{
         userRepository.save(userToEnable);
     }
 
+    /**
+     * Deletes a User object from the datasource using the supplied 'id' param.
+     * The supplied 'id' should not match that of the currently authenticated user
+     * or an IllegalArgumentException is thrown.
+     *
+     * @param id             'id' field value of the User object to delete from the datasource
+     * @param currentAdminId the 'id' field value of the currently authenticated User
+     */
     @Override
     public void deleteById(Long id, Long currentAdminId) {
         if(id.equals(currentAdminId)){
-            throw new ItemDeleteException("Cannot delete user while in use!");
+            throw new IllegalArgumentException("Id values are the same");
         }
         if(userRepository.existsById(id)){
             userRepository.deleteById(id);

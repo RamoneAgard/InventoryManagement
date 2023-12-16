@@ -1,6 +1,6 @@
 package org.agard.InventoryManagement.Exceptions;
 
-public class ItemCreationException extends RuntimeException{
+public class ItemCreationException extends Exception{
     public ItemCreationException() {
     }
 

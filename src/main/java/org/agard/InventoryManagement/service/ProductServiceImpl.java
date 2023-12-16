@@ -14,7 +14,6 @@ import org.hibernate.exception.ConstraintViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
@@ -36,26 +35,6 @@ public class ProductServiceImpl implements ProductService, PagingService {
             .and(Sort.by("volume.valueCode"));
 
 
-    /**
-     * @param pageNumber page number starting from 0, or null (Default is 0)
-     * @param pageSize Number of elements per page or null (Default is DEFAULT_PAGE_SIZE defined in class)
-     * @return Page of Product elements meeting input parameters
-     */
-    @Override
-    public Page<Product> getDefaultProductList(Integer pageNumber, Integer pageSize) {
-        PageRequest pageRequest = buildPageRequest(pageNumber, pageSize, defaultSort);
-        return productRepository.findAll(pageRequest);
-    }
-
-
-    /**
-     * @param name       Search name of the product or null
-     * @param categories List of category names or null
-     * @param volumes    List of volume descriptions or null
-     * @param pageNumber Page number starting from 0 or null (Default is 0)
-     * @param pageSize   Number of elements per page or null (Default is DEFAULT_PAGE_SIZE defined in class)
-     * @return Page of Product elements meeting input parameters
-     */
     @Override
     public Page<Product> filterProductPage(String name, List<Long> categories, List<Long> volumes, Integer pageNumber, Integer pageSize) {
 
@@ -93,12 +72,9 @@ public class ProductServiceImpl implements ProductService, PagingService {
     }
 
 
-    /**
-     * @param formToSave the Product to save to database, new or existing
-     */
     @Override
     @Transactional
-    public void saveProduct(@Valid ProductForm formToSave) {
+    public void saveProduct(@Valid ProductForm formToSave) throws ItemCreationException {
         Product productToSave;
         if(formToSave.getId() == null){
             productToSave = new Product();
@@ -120,13 +96,12 @@ public class ProductServiceImpl implements ProductService, PagingService {
             productRepository.save(productToSave);
         }
         catch (RuntimeException e){
-            String message = "Something went wrong saving this product";
             if(e.getCause() instanceof ConstraintViolationException){
-                message = "Product upc and item-code must be unique";
+                throw new ItemCreationException("Product upc and item-code must be unique");
+            } else{
+                throw e;
             }
-            throw new ItemCreationException(message);
         }
-
     }
 
     @Override
@@ -135,10 +110,6 @@ public class ProductServiceImpl implements ProductService, PagingService {
     }
 
 
-    /**
-     * @param id ID of the product to retrieve from database
-     * @return ProductForm object with argument ID or Exception is thrown
-     */
     @Override
     public ProductForm getFormById(Long id) {
         Product product = getById(id);
@@ -163,11 +134,8 @@ public class ProductServiceImpl implements ProductService, PagingService {
     }
 
 
-    /**
-     * @param id ID of the Product to delete
-     */
     @Override
-    public void deleteById(Long id) {
+    public void softDeleteById(Long id) {
         if(productRepository.existsById(id)){
             productRepository.softDeleteById(id);
             return;

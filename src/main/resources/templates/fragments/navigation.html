@@ -65,11 +65,16 @@
                     </li>
                 </ul>
             </div>
-            <div sec:authorize="isAuthenticated()" class="p-1 ms-auto d-flex align-items-center">
-                <form th:action="@{/logout}" method="post">
-                    <button type="submit" class="btn btn-primary">Logout: <span sec:authentication="name"></span></button>
-                </form>
+            <div>
+                <div sec:authorize="isAuthenticated()" class="p-1 ms-auto d-flex align-items-center">
+                    <form th:action="@{/logout}" method="post">
+                        <button type="submit" class="btn btn-sm btn-outline-success">
+                            Logout: <br> <span sec:authentication="name"></span>
+                        </button>
+                    </form>
+                </div>
             </div>
+
         </div>
     </nav>
 </body>

@@ -17,10 +17,8 @@ import org.agard.InventoryManagement.service.ProductService;
 import org.agard.InventoryManagement.service.VolumeService;
 import org.agard.InventoryManagement.util.ViewNames;
 import org.springframework.data.domain.Page;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.util.StringUtils;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
@@ -148,9 +146,6 @@ public class ProductController {
             catch (NotFoundException | ItemCreationException e){
                 model.addAttribute("addError", e.getMessage());
             }
-            catch (RuntimeException e){
-                model.addAttribute("addError", "Something went wrong, reload and try again");
-            }
         }
         else{
             model.addAttribute("addError",
@@ -180,7 +175,7 @@ public class ProductController {
                                     Model model){
 
         try{
-            productService.deleteById(id);
+            productService.softDeleteById(id);
         }
         catch (NotFoundException e){
             model.addAttribute("tableError", e.getMessage());

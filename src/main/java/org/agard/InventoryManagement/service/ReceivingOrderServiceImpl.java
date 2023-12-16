@@ -45,6 +45,15 @@ public class ReceivingOrderServiceImpl implements ReceivingOrderService, PagingS
         return orderRepository.findAllWithFilters(supplier, createdBefore, pageRequest);
     }
 
+    /**
+     * Creates/Updates and persists a ReceivingOrder object to the datasource using date from
+     * the 'orderForm' param. Also uses the OrderItemService to create/update the
+     * corresponding OrderItem objects in the 'orderForm' param
+     *
+     * @param orderForm form with corresponding data to create of update ReceivingOrder object in datasource
+     * @throws NotFoundException if orderFrom contains a non-null 'id' field and corresponding ReceivingOrder object is not found,
+     *                           or if corresponding OrderItemForms with non-null 'id' fields are not found
+     */
     @Override
     @Transactional
     public void saveOrder(ReceivingOrderForm orderForm) {
@@ -72,12 +81,7 @@ public class ReceivingOrderServiceImpl implements ReceivingOrderService, PagingS
 
         orderToSave.setItems(itemsToSave);
         orderToSave.setSupplier(orderForm.getSupplier());
-        try{
-            orderRepository.save(orderToSave);
-        }
-        catch (RuntimeException e){
-            throw new ItemCreationException("Something went wrong saving this order");
-        }
+        orderRepository.save(orderToSave);
 
         itemService.revertInventory(itemsToDelete, false);
         for(OrderItem item : itemsToDelete){
